@@ -39,17 +39,27 @@ systemctl enable --now ${K8S_DISTRO}-${NODE_TYPE}.service
 
 case ${NODE_TYPE} in
   server)
+    echo "COMMAND: mkdir ~/.kube"
     mkdir ~/.kube
+    echo "COMMAND: ln -s /etc/rancher/${K8S_DISTRO}/${K8S_DISTRO}.yaml ~/.kube/config"
     ln -s /etc/rancher/${K8S_DISTRO}/${K8S_DISTRO}.yaml ~/.kube/config
+    echo "COMMAND: ln -s /var/lib/rancher/${K8S_DISTRO}/bin/kubectl /usr/local/bin/"
     ln -s /var/lib/rancher/${K8S_DISTRO}/bin/kubectl /usr/local/bin/
+    echo "COMMAND: kubectl completion bash | sudo tee /etc/bash_completion.d/kubectl > /dev/null"
     kubectl completion bash | sudo tee /etc/bash_completion.d/kubectl > /dev/null
   ;;
   agent)
+    echo "COMMAND: mkdir ~/.kube"
     mkdir ~/.kube
+    echo "COMMAND: scp ${CLUSTER_NAME}.example.com:/etc/rancher/${K8S_DISTRO}/${K8S_DISTRO}.yaml ~/.kube/config"
     scp ${CLUSTER_NAME}.example.com:/etc/rancher/${K8S_DISTRO}/${K8S_DISTRO}.yaml ~/.kube/config
+    echo "COMMAND: sed -i \"s/127.0.0.1:6443/${CLUSTER_NAME}.example.com:6443/g\" ~/.kube/config"
     sed -i "s/127.0.0.1:6443/${CLUSTER_NAME}.example.com:6443/g" ~/.kube/config
+    echo "COMMAND: scp ${CLUSTER_NAME}.example.com:/var/lib/rancher/${K8S_DISTRO}/bin/kubectl /usr/local/bin/"
     scp ${CLUSTER_NAME}.example.com:/var/lib/rancher/${K8S_DISTRO}/bin/kubectl /usr/local/bin/
+    echo "COMMAND: chmod +x /usr/local/bin/kubectl"
     chmod +x /usr/local/bin/kubectl
+    echo "COMMAND: kubectl completion bash | sudo tee /etc/bash_completion.d/kubectl > /dev/null"
     kubectl completion bash | sudo tee /etc/bash_completion.d/kubectl > /dev/null
   ;;
 esac
