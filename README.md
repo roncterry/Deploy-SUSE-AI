@@ -75,7 +75,7 @@ At this point the base set of applications is installed on the downstream AI clu
 * `with_gpu`  (Installs Ollama with GPU support)
 * `with_gpu_and_ingress`  (Installs Ollama with GPU support and configures an ingress allowing direct communication with Ollama)
 
-`25-install_open-webui_with_ollama.sh` : This installs Ollama and then Open WebUI. You do not need to install Ollama before running this because this chart will install both Ollama and Open WebUI. You must supply one of the following arguments to the script:
+`25-install_open-webui_with_ollama.sh` : This installs Ollama and then Open WebUI. (You do not need to install Ollama before running this because this chart will install both Ollama and Open WebUI.) You must supply one of the following arguments to the script:
 
 * `without_gpu` (installs Ollama without GPU support and a single model and installs Open WebUI - you probably don't want this)
 * `with_gpu ` (Installs Ollama with GPU support and a single model and installs Open WebUI)
