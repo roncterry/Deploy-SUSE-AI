@@ -39,6 +39,7 @@ source deploy_suse_ai.cfg
 #MINIO_ROOT_USER_PASSWORD=adminminio
 ##MINIO_REPLICA_COUNT=4
 #MINIO_REPLICA_COUNT=3
+#MINIO_VOLUME_SIZE=100Gi
 
 ##KAFKA_REPLICA_COUNT=3
 #KAFKA_REPLICA_COUNT=3
@@ -82,6 +83,7 @@ minio:
   rootUser: ${MINIO_ROOT_USER}
   rootPassword: ${MINIO_ROOT_USER_PASSWORD}
   persistence:
+    size: ${MINIO_VOLUME_SIZE}
     storageClass: ${STORAGE_CLASS_NAME}
   resources:
     requests:
