@@ -49,7 +49,7 @@ spec:
   kubectl apply -f nvidia-gpu-operator.yaml
   echo
 
-  sleep 5
+  sleep 10
   echo "COMMAND: kubectl -n gpu-operator rollout status deploy/gpu-operator"
   kubectl -n gpu-operator rollout status deploy/gpu-operator
   echo

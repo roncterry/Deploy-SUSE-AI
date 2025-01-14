@@ -86,10 +86,10 @@ ingress:
   echo "COMMAND: kubectl -n ${SUSE_AI_NAMESPACE} rollout status deploy/suse-observability-ui"
   kubectl -n ${SUSE_AI_NAMESPACE} rollout status deploy/suse-observability-ui
   echo
-  echo "COMMAND: kubectl -n ${SUSE_AI_NAMESPACE} rollout status deploy/suse-observability-hbase-console"
-  kubectl -n ${SUSE_AI_NAMESPACE} rollout status deploy/suse-observability-correlate
-  echo
-  echo "COMMAND: kubectl -n ${SUSE_AI_NAMESPACE} rollout status deploy/suse-observability-hbase-console"
+  #echo "COMMAND: kubectl -n ${SUSE_AI_NAMESPACE} rollout status deploy/suse-observability-hbase-console"
+  #kubectl -n ${SUSE_AI_NAMESPACE} rollout status deploy/suse-observability-console
+  #echo
+  echo "COMMAND: kubectl -n ${SUSE_AI_NAMESPACE} rollout status deploy/suse-observability-hbase-correlate"
   kubectl -n ${SUSE_AI_NAMESPACE} rollout status deploy/suse-observability-correlate
   echo
   echo "COMMAND: kubectl -n ${SUSE_AI_NAMESPACE} rollout status deploy/suse-observability-e2es"

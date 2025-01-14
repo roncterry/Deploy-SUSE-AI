@@ -54,18 +54,43 @@ defaultSettings:
   echo "COMMAND: kubectl -n longhorn-system rollout status deploy/longhorn-driver-deployer"
   kubectl -n longhorn-system rollout status deploy/longhorn-driver-deployer
   echo
+
+  until kubectl -n longhorn-system rollout status deploy/longhorn-ui > /dev/null 2>&1
+  do
+    sleep 1
+  done
   echo "COMMAND: kubectl -n longhorn-system rollout status deploy/longhorn-ui"
   kubectl -n longhorn-system rollout status deploy/longhorn-ui
   echo
+
+  until kubectl -n longhorn-system rollout status deploy/csi-attacher > /dev/null 2>&1
+  do
+    sleep 1
+  done
   echo "COMMAND: kubectl -n longhorn-system rollout status deploy/csi-attacher"
   kubectl -n longhorn-system rollout status deploy/csi-attacher
   echo
+
+  until kubectl -n longhorn-system rollout status deploy/csi-provisioner > /dev/null 2>&1
+  do
+    sleep 1
+  done
   echo "COMMAND: kubectl -n longhorn-system rollout status deploy/csi-provisioner"
   kubectl -n longhorn-system rollout status deploy/csi-provisioner
   echo
+
+  until kubectl -n longhorn-system rollout status deploy/csi-resizer > /dev/null 2>&1
+  do
+    sleep 1
+  done
   echo "COMMAND: kubectl -n longhorn-system rollout status deploy/csi-resizer"
   kubectl -n longhorn-system rollout status deploy/csi-resizer
   echo
+
+  until kubectl -n longhorn-system rollout status deploy/csi-snapshotter > /dev/null 2>&1
+  do
+    sleep 1
+  done
   echo "COMMAND: kubectl -n longhorn-system rollout status deploy/csi-snapshotter"
   kubectl -n longhorn-system rollout status deploy/csi-snapshotter
   echo
