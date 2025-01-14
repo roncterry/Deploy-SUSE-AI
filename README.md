@@ -85,9 +85,9 @@ At this point the base set of applications is installed on the downstream AI clu
 
 To wipe everything out so that you can start again from scratch, two scripts are provided to completely remove the K8s cluster:
 
-* `99a-uninstall_rke2_server.sh` : Completely uninstalls RKE2 from a server node.
+* `99a-uninstall_rke2_server.sh` : Completely uninstalls RKE2 from a server (control plane) node.
 
-* `99b-uninstall_rke2_agent.sh` : Completely uninstalls RKE2 from a worker (agent) node.
+* `99b-uninstall_rke2_agent.sh` : Completely uninstalls RKE2 from an agent (worker) node.
 
 Some additional scripts are provided to help clean up after certain applications' helm chart uninstalls where not everything is cleaned up.
 
