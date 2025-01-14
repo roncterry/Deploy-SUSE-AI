@@ -7,6 +7,7 @@ The starting point for these scripts is:
 * One or more downstream AI cluster nodes that have a SLES (or SL Micro?) OS installed on them 
 * The NVIDIA drivers installed on the nodes with GPUs
 * Rancher Manager installed on your management cluster
+* DNS configured to resolve the cluster name (aicluster01.example.com) to the first control node's IP address
 
 Do the following to deploy the SUSE AI stack:
 
