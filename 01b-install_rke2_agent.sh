@@ -8,8 +8,18 @@ source deploy_suse_ai.cfg
 #K8S_DISTRO=rke2
 #CLUSTER_NAME=aicluster01
 
+#------------------------------------------------------------------------------
+
 # The NODE_TYPE variable must be set in this script.
+# Options: server, agent
+#
 NODE_TYPE=agent
+
+# The FIRST_SERVER must be set to 'true' for the initial server node and 
+# 'false' for all other server nodes. This variable must be set in this script.
+# This is ignored if NODE_TYPE=agent
+#
+FIRST_SERVER=true
 
 #########################################
 #  Deploy RKE2
@@ -22,10 +32,21 @@ mkdir -p /etc/rancher/${K8S_DISTRO}
 
 case ${NODE_TYPE} in
   server)
-    echo "token: ${CLUSTER_NAME}" >> /etc/rancher/${K8S_DISTRO}/config.yaml
-    echo "tls-san:" >> /etc/rancher/${K8S_DISTRO}/config.yaml
-    echo "  - ${CLUSTER_NAME}.example.com" >> /etc/rancher/${K8S_DISTRO}/config.yaml
-    echo "write-kubeconfig-mode: 600" >> /etc/rancher/${K8S_DISTRO}/config.yaml
+    case ${FIRST_SERVER} in
+      true)
+        echo "token: ${CLUSTER_NAME}" >> /etc/rancher/${K8S_DISTRO}/config.yaml
+        echo "tls-san:" >> /etc/rancher/${K8S_DISTRO}/config.yaml
+        echo "  - ${CLUSTER_NAME}.example.com" >> /etc/rancher/${K8S_DISTRO}/config.yaml
+        echo "write-kubeconfig-mode: 600" >> /etc/rancher/${K8S_DISTRO}/config.yaml
+      ;;
+      *)
+        echo "server: https://${CLUSTER_NAME}.example.com:9345" >> /etc/rancher/${K8S_DISTRO}/config.yaml
+        echo "token: ${CLUSTER_NAME}" >> /etc/rancher/${K8S_DISTRO}/config.yaml
+        echo "tls-san:" >> /etc/rancher/${K8S_DISTRO}/config.yaml
+        echo "  - ${CLUSTER_NAME}.example.com" >> /etc/rancher/${K8S_DISTRO}/config.yaml
+        echo "write-kubeconfig-mode: 600" >> /etc/rancher/${K8S_DISTRO}/config.yaml
+      ;;
+    esac
   ;;
   agent)
     echo "server: https://${CLUSTER_NAME}.example.com:9345" >> /etc/rancher/${K8S_DISTRO}/config.yaml
