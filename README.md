@@ -9,6 +9,8 @@ The starting point for these scripts is:
 * Rancher Manager installed on your management cluster
 * DNS configured to resolve the cluster name (aicluster01.example.com) to the first control node's IP address
 
+## Install the SUSE AI Stack
+
 Do the following to deploy the SUSE AI stack:
 
 1) Deploy the RKE2 cluster on the Downstream AI Cluster
@@ -74,3 +76,15 @@ At this point the base set of applications is installed on the downstream AI clu
 * `without_gpu` (installs Ollama without GPU support and a single model and installs Open WebUI - you probably don't want this)
 * `with_gpu ` (Installs Ollama with GPU support and a single model and installs Open WebUI)
 * `with_gpu_and_milvus`  (Installs Ollama with GPU support and configures Ollaman and Open WebUI to use Milvus)
+
+## Uninstall the SUSE AI Stack
+
+To wipe everything out so that you can start again from scratch, two scripts are provided to completely remove the K8s cluster:
+
+* `99a-uninstall_rke2_server.sh` : Completely uninstalls RKE2 from a server node.
+
+* `99b-uninstall_rke2_agent.sh` : Completely uninstalls RKE2 from a worker (agent) node.
+
+Some additional scripts are provided to help clean up after certain applications' helm chart uninstalls where not everything is cleaned up.
+
+* `91-clean_up_milvus_PVCs.sh` : Removes the PVCs and therefore the PV that were created by the Milvus Helm chart install but were not removed by the uninstall.
