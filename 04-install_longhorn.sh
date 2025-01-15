@@ -10,6 +10,7 @@ source deploy_suse_ai.cfg
 #LH_PASSWORD="longhorn"
 #LH_URL="longhorn.example.com"
 #LH_DEFAULT_REPLICA_COUNT=3
+#LH_DEFAULT_CLASS_REPLICA_COUNT=3
 
 if [ -z ${LH_URL} ]
 then
@@ -35,6 +36,8 @@ deploy_longhorn() {
   echo "
 defaultSettings:
   defaultReplicaCount: ${LH_DEFAULT_REPLICA_COUNT}
+persistence:
+  defaultClassReplicaCount: ${LH_DEFAULT_CLASS_REPLICA_COUNT}
 " > longhorn-values.yaml
 
   if ! helm repo list | grep -q longhorn
