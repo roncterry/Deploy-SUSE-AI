@@ -27,12 +27,22 @@ fi
 ##############################################################################
 
 # You can either source in the variables from a common config file or
-# uncomment the following variables to set them in this script.
+# set the them in this script.
 
-source deploy_suse_ai.cfg
+CONFIG_FILE=deploy_suse_ai.cfg
 
-#export SUSE_AI_NAMESPACE=suse-ai
-#export IMAGE_PULL_SECRET_NAME=application-collection
+if ! [ -z ${CONFIG_FILE} ]
+then
+  if [ -e ${CONFIG_FILE} ]
+  then
+    source ${CONFIG_FILE}
+  fi
+else
+  SUSE_AI_NAMESPACE=suse-ai
+  IMAGE_PULL_SECRET_NAME=application-collection
+fi
+
+LICENSES_FILE=authentication_and_licenses.cfg
 
 ##############################################################################
 
@@ -41,9 +51,10 @@ log_into_app_collection() {
   then
     # The APP_COLLECTION_URI, APP_COLLECTION_USERNAME and APP_COLLECTION_PASSWORD
     # variables are set in an external file and are sourced in here:
-    source authentication_and_licenses.cfg
+    source ${LICENSES_FILE}
   fi
 
+  echo "Logging into the Application Collection ..."
   echo "COMMAND: helm registry login dp.apps.rancher.io/charts -u ${APP_COLLECTION_USERNAME} -p ${APP_COLLECTION_PASSWORD}"
   helm registry login dp.apps.rancher.io/charts -u ${APP_COLLECTION_USERNAME} -p ${APP_COLLECTION_PASSWORD}
   echo
@@ -54,14 +65,16 @@ create_app_collection_secret() {
   then
     # The APP_COLLECTION_URI, APP_COLLECTION_USERNAME and APP_COLLECTION_PASSWORD
     # variables are set in an external file and are sourced in here:
-    source auth_and_repos.cfg
+    source ${LICENSES_FILE}
   fi
 
   if ! [ -z $_SUSE_AI_NAMESPACE} ]
   then
     if ! kubectl get namespace | grep -q ${SUSE_AI_NAMESPACE}
     then
+      echo "COMMAND: kubectl create namespace ${SUSE_AI_NAMESPACE}"
       kubectl create namespace ${SUSE_AI_NAMESPACE}
+      echo
     fi
 
     if ! kubectl -n ${SUSE_AI_NAMESPACE} get secrets | grep -v ^NAME | awk '{ print $1 }' | grep -q ${IMAGE_PULL_SECRET_NAME}

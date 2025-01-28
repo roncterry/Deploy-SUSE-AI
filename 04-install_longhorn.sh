@@ -1,16 +1,26 @@
 #!/bin/bash
 
 # You can either source in the variables from a common config file or
-# uncomment the LH_* variables below to have them set in this script.
+# set them in this script.
 
-source deploy_suse_ai.cfg
+CONFIG_FILE=deploy_suse_ai.cfg
 
-#LH_HELM_REPO_URL=https://charts.longhorn.io
-#LH_USER="admin"
-#LH_PASSWORD="longhorn"
-#LH_URL="longhorn.example.com"
-#LH_DEFAULT_REPLICA_COUNT=3
-#LH_DEFAULT_CLASS_REPLICA_COUNT=3
+if ! [ -z ${CONFIG_FILE} ]
+then
+  if [ -e ${CONFIG_FILE} ]
+  then
+    source ${CONFIG_FILE}
+  fi
+else
+  LH_HELM_REPO_URL=https://charts.longhorn.io
+  LH_USER="admin"
+  LH_PASSWORD="longhorn"
+  LH_URL="longhorn.example.com"
+  LH_DEFAULT_REPLICA_COUNT=1
+  LH_DEFAULT_CLASS_REPLICA_COUNT=1
+  LH_CSI_REPLICA_COUNT=1
+  LH_RESERVED_DISK_PERCENTAGE=15
+fi
 
 if [ -z ${LH_URL} ]
 then
@@ -26,19 +36,33 @@ install_openiscsi() {
     SLES)
       if ! zypper se open-iscsi | grep -q ^i
       then
+        echo "Installing open-iscsi ..."
+        echo "COMMAND: zypper install -y --auto-agree-with-licenses open-iscsi"
         zypper install -y --auto-agree-with-licenses open-iscsi
+        echo
       fi
     ;;
   esac
 }
 
 deploy_longhorn() {
+  echo "Writing out longhorn-values.yaml file ..."
+  echo
   echo "
 defaultSettings:
   defaultReplicaCount: ${LH_DEFAULT_REPLICA_COUNT}
+  storageReservedPercentageForDefaultDisk: ${LH_RESERVED_DISK_PERCENTAGE}
 persistence:
   defaultClassReplicaCount: ${LH_DEFAULT_CLASS_REPLICA_COUNT}
+csi:
+  attacherReplicaCount: ${LH_CSI_REPLICA_COUNT}
+  provisionerReplicaCount: ${LH_CSI_REPLICA_COUNT}
+  resizerReplicaCount: ${LH_CSI_REPLICA_COUNT}
+  snapshotterReplicaCount: ${LH_CSI_REPLICA_COUNT}
 " > longhorn-values.yaml
+  echo
+  cat longhorn-values.yaml
+  echo
 
   if ! helm repo list | grep -q longhorn
   then
@@ -98,13 +122,28 @@ persistence:
   kubectl -n longhorn-system rollout status deploy/csi-snapshotter
   echo
 
+  echo "-----------------------------------------------------------------------------"
+  echo "COMMAND: kubectl get storageclasses"
+  kubectl get storageclasses
+  echo
+
+  echo "-----------------------------------------------------------------------------"
+  echo "COMMAND: kubectl describe storageclasses longhorn"
+  kubectl describe storageclasses longhorn
+  echo 
+
 }
 
 create_longhorn_ingress() {
   echo "${LH_USER}:$(openssl passwd -stdin -apr1 <<< ${LH_PASSWORD})" > longhorn-auth
 
+  echo "Creating secret for Longhorn ingress access ..."
+  echo "COMMAND: kubectl -n longhorn-system create secret generic longhorn-auth --from-file=longhorn-auth"
   kubectl -n longhorn-system create secret generic longhorn-auth --from-file=longhorn-auth
+  echo
 
+  echo "Writing out longhor-ingress.yaml ..."
+  echo
   echo "
 apiVersion: networking.k8s.io/v1
 kind: Ingress
@@ -135,8 +174,18 @@ spec:
             port:
               number: 80
 " > longhorn-ingress.yaml
+  echo
+  cat longhorn-ingress.yaml
+  echo
 
+  echo "COMMAND: kubectl -n longhorn-system create -f longhorn-ingress.yaml"
   kubectl -n longhorn-system create -f longhorn-ingress.yaml
+  echo
+
+  echo "-----------------------------------------------------------------------------"
+  echo "COMMAND: kubectl -n longhorn-system get ingresses"
+  kubectl -n longhorn-system get ingresses
+  echo 
 }
 
 ###############################################################################

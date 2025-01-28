@@ -27,24 +27,34 @@ fi
 ##############################################################################
 
 # You can either source in the variables from a common config file or
-# uncomment the following variables to set them in this script.
+# set the them in this script.
 
-source deploy_suse_ai.cfg
+CONFIG_FILE=deploy_suse_ai.cfg
+
+if ! [ -z ${CONFIG_FILE} ]
+then
+  if [ -e ${CONFIG_FILE} ]
+  then
+    source ${CONFIG_FILE}
+fi
+else
+  SUSE_AI_NAMESPACE=suse-observability
+  
+  OBSERVABILITY_HOST=observability.example.com
+  OBSERVABILITY_BASEURL=http://${OBSERVABILITY_HOST}
+  OBSERVABILITY_SIZING_PROFILE=trial
+  OBSERVABILITY_VALUES_DIR=${PWD}
+fi
+
+LICENSES_FILE=authentication_and_licenses.cfg
 
 # OBSERVABILITY_LICENSE_KEY and OBSERVABILITY_HELM_REPO_URL are in a separate
 # config file that is sourced in here:
-source authentication_and_licenses.cfg
-
-#SUSE_AI_NAMESPACE=suse-ai
-
-#OBSERVABILITY_HOST=ai-observability.example.com
-#OBSERVABILITY_BASEURL=http://${OBSERVABILITY_HOST}
-#OBSERVABILITY_SIZING_PROFILE=trial
-#OBSERVABILITY_VALUES_DIR=${PWD}
+source ${LICENSES_FILE}
 
 ##############################################################################
 
-install_observability() {
+create_observability_templates() {
   echo
   echo "COMMAND: helm repo add suse-observability ${OBSERVABILITY_HELM_REPO_URL}"
   helm repo add suse-observability ${OBSERVABILITY_HELM_REPO_URL}
@@ -70,7 +80,10 @@ ingress:
 " > ${OBSERVABILITY_VALUES_DIR}/suse-observability-values/templates/ingress_values.yaml
   cat ${OBSERVABILITY_VALUES_DIR}/suse-observability-values/templates/ingress_values.yaml
   echo
+}
 
+install_observability() {
+  echo
   echo "COMMAND: helm upgrade --install --namespace ${SUSE_AI_NAMESPACE} --create-namespace --values ${OBSERVABILITY_VALUES_DIR}/suse-observability-values/templates/baseConfig_values.yaml --values ${OBSERVABILITY_VALUES_DIR}/suse-observability-values/templates/sizing_values.yaml --values ${OBSERVABILITY_VALUES_DIR}/suse-observability-values/templates/ingress_values.yaml suse-observability suse-observability/suse-observability"
   helm upgrade --install --namespace ${SUSE_AI_NAMESPACE} --create-namespace --values ${OBSERVABILITY_VALUES_DIR}/suse-observability-values/templates/baseConfig_values.yaml --values ${OBSERVABILITY_VALUES_DIR}/suse-observability-values/templates/sizing_values.yaml --values ${OBSERVABILITY_VALUES_DIR}/suse-observability-values/templates/ingress_values.yaml suse-observability suse-observability/suse-observability
 
@@ -107,5 +120,22 @@ ingress:
 
 ##############################################################################
 
-install_observability
+case ${1} in
+  templates_only)
+    create_observability_templates
+  ;;
+  install_only)
+    install_observability
+  ;;
+  help|-h|--help)
+    echo 
+    echo "USAGE: ${0} [templates_only|install_only]"
+    echo 
+    exit
+  ;;
+  *)
+    create_observability_templates
+    install_observability
+  ;;
+esac
 

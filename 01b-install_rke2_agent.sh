@@ -1,12 +1,20 @@
 #!/bin/bash
 
 # You can either source in the variables from a common config file or
-# uncomment the following variables to set them in this script.
+# set them in this script.
 
-source deploy_suse_ai.cfg
+CONFIG_FILE=deploy_suse_ai.cfg
 
-#K8S_DISTRO=rke2
-#CLUSTER_NAME=aicluster01
+if ! [ -z ${CONFIG_FILE} ]
+then
+  if [ -e ${CONFIG_FILE} ]
+  then
+    source ${CONFIG_FILE}
+  fi
+else
+  K8S_DISTRO=rke2
+  CLUSTER_NAME=aicluster01
+fi
 
 #------------------------------------------------------------------------------
 
@@ -34,13 +42,13 @@ case ${NODE_TYPE} in
   server)
     case ${FIRST_SERVER} in
       true)
-        echo "token: ${CLUSTER_NAME}" >> /etc/rancher/${K8S_DISTRO}/config.yaml
+        echo "token: ${CLUSTER_NAME}" > /etc/rancher/${K8S_DISTRO}/config.yaml
         echo "tls-san:" >> /etc/rancher/${K8S_DISTRO}/config.yaml
         echo "  - ${CLUSTER_NAME}.example.com" >> /etc/rancher/${K8S_DISTRO}/config.yaml
         echo "write-kubeconfig-mode: 600" >> /etc/rancher/${K8S_DISTRO}/config.yaml
       ;;
       *)
-        echo "server: https://${CLUSTER_NAME}.example.com:9345" >> /etc/rancher/${K8S_DISTRO}/config.yaml
+        echo "server: https://${CLUSTER_NAME}.example.com:9345" > /etc/rancher/${K8S_DISTRO}/config.yaml
         echo "token: ${CLUSTER_NAME}" >> /etc/rancher/${K8S_DISTRO}/config.yaml
         echo "tls-san:" >> /etc/rancher/${K8S_DISTRO}/config.yaml
         echo "  - ${CLUSTER_NAME}.example.com" >> /etc/rancher/${K8S_DISTRO}/config.yaml
@@ -49,7 +57,7 @@ case ${NODE_TYPE} in
     esac
   ;;
   agent)
-    echo "server: https://${CLUSTER_NAME}.example.com:9345" >> /etc/rancher/${K8S_DISTRO}/config.yaml
+    echo "server: https://${CLUSTER_NAME}.example.com:9345" > /etc/rancher/${K8S_DISTRO}/config.yaml
     echo "token: ${CLUSTER_NAME}" >> /etc/rancher/${K8S_DISTRO}/config.yaml
   ;;
 esac
@@ -62,26 +70,48 @@ case ${NODE_TYPE} in
   server)
     echo "COMMAND: mkdir ~/.kube"
     mkdir ~/.kube
-    echo "COMMAND: ln -s /etc/rancher/${K8S_DISTRO}/${K8S_DISTRO}.yaml ~/.kube/config"
-    ln -s /etc/rancher/${K8S_DISTRO}/${K8S_DISTRO}.yaml ~/.kube/config
+    echo
+
+    echo "COMMAND: cp /etc/rancher/${K8S_DISTRO}/${K8S_DISTRO}.yaml ~/.kube/config"
+    cp /etc/rancher/${K8S_DISTRO}/${K8S_DISTRO}.yaml ~/.kube/config
+    echo
+
     echo "COMMAND: ln -s /var/lib/rancher/${K8S_DISTRO}/bin/kubectl /usr/local/bin/"
     ln -s /var/lib/rancher/${K8S_DISTRO}/bin/kubectl /usr/local/bin/
+    echo
+
     echo "COMMAND: kubectl completion bash | sudo tee /etc/bash_completion.d/kubectl > /dev/null"
     kubectl completion bash | sudo tee /etc/bash_completion.d/kubectl > /dev/null
+    echo
+
+    echo "COMMAND: kubectl get nodes"
+    kubectl get nodes
+    echo
   ;;
   agent)
     echo "COMMAND: mkdir ~/.kube"
     mkdir ~/.kube
+    echo
+
     echo "COMMAND: scp ${CLUSTER_NAME}.example.com:/etc/rancher/${K8S_DISTRO}/${K8S_DISTRO}.yaml ~/.kube/config"
     scp ${CLUSTER_NAME}.example.com:/etc/rancher/${K8S_DISTRO}/${K8S_DISTRO}.yaml ~/.kube/config
+    echo
+
     echo "COMMAND: sed -i \"s/127.0.0.1:6443/${CLUSTER_NAME}.example.com:6443/g\" ~/.kube/config"
     sed -i "s/127.0.0.1:6443/${CLUSTER_NAME}.example.com:6443/g" ~/.kube/config
+    echo
+
     echo "COMMAND: scp ${CLUSTER_NAME}.example.com:/var/lib/rancher/${K8S_DISTRO}/bin/kubectl /usr/local/bin/"
     scp ${CLUSTER_NAME}.example.com:/var/lib/rancher/${K8S_DISTRO}/bin/kubectl /usr/local/bin/
+    echo
+
     echo "COMMAND: chmod +x /usr/local/bin/kubectl"
     chmod +x /usr/local/bin/kubectl
+    echo
+
     echo "COMMAND: kubectl completion bash | sudo tee /etc/bash_completion.d/kubectl > /dev/null"
     kubectl completion bash | sudo tee /etc/bash_completion.d/kubectl > /dev/null
+    echo
   ;;
 esac
 
