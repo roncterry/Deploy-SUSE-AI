@@ -4,7 +4,7 @@ Scripts used to automate the deployment of the SUSE AI stack.
 
 The starting point for these scripts is:
 
-* One or more downstream AI cluster nodes that have a SLES (or SL Micro?) OS installed on them 
+* One or more downstream AI cluster nodes that have a SLES (or SL Micro?) OS installed on them (***Note**: These scripts have been tested on SLES but not SL Micro*)
 * The NVIDIA drivers installed on the nodes with GPUs
   * If the OS is SLES install the NVIDIA-Compute module
   * If the OS is SL Micro follow the instructions to install the NVIDIA drivers -[Installing NVIDIA GPU Drivers on SUSE Linux Micro](https://documentation.suse.com/suse-ai/1.0/html/NVIDIA-GPU-driver-on-SL-Micro/index.html)
