@@ -71,7 +71,7 @@ Do the following to deploy the SUSE AI stack:
 
    c) If you want an HA cluster, on the other control plane nodes, run the script: `11c-install_additional_rke2_server.sh`
 
-   d) To retrieve the `kubectl` command and the kubeconfig file from the AI cluster and install them onto your management machine, on the management machine run the script: `11d-retrieve_kubectl_and_kubeconfig_from_rke2.sh`
+   d) To retrieve the `kubectl` command and the kubeconfig file from the AI cluster and install them onto your management machine, on the management machine run the script: `12-retrieve_kubectl_and_kubeconfig_from_rke2.sh`
 
 4) Import the Downstream AI Cluster into Rancher Manager (optional at this point, can be done later)
    
