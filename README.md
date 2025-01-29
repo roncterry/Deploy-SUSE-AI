@@ -67,9 +67,9 @@ Do the following to deploy the SUSE AI stack:
    
    a) On the first cluster node, the one that will be the (1st) control plan node, run the script: `11a-install_first_rke2_server.sh`   
    
-   b) On the cluster nodes that will be worker nodes run the script: `11b-install_rke2_agent.sh`
+   b) If you want an HA cluster, on the other control plane nodes, run the script: `11b-install_additional_rke2_server.sh`
 
-   c) If you want an HA cluster, on the other control plane nodes, run the script: `11c-install_additional_rke2_server.sh`
+   c) On the cluster nodes that will be worker nodes run the script: `11c-install_rke2_agent.sh`
 
    d) To retrieve the `kubectl` command and the kubeconfig file from the AI cluster and install them onto your management machine, on the management machine run the script: `12-retrieve_kubectl_and_kubeconfig_from_rke2.sh`
 
@@ -113,28 +113,23 @@ Do the following to deploy the SUSE AI stack:
 
 At this point the base set of applications is installed on the downstream AI cluster. You can now use the following scripts to deploy the AI stack applications. These scripts can be run on your management machine or any of the downstream AI cluster nodes that have the `kubectl` and `helm` commands installed.
 
-`31-install_milvus.sh` : This installs Milvus on the AI cluster. Do this if you want to use the Milvus vector database in conjunction with Open WebUI. (Note: The script `91-clean_up_milvus_PVCs.sh` can be used if you uninstall the Milvus deployment using Helm and want to remove the volumes that were created - they don't get removed automatically when uninstalling the deployment.)
-
-`32-install_ollama.sh` : This installs only Ollama with a single model. Do this if you want to deploy the AI stack in a more modular fashion or are not going to use Open WebUI. You must supply one of the following arguments to the script:
-
-* `without_gpu` (installs Ollama without GPU support - you probably don't want this)
-* `with_gpu`  (Installs Ollama with GPU support)
-* `with_gpu_and_ingress`  (Installs Ollama with GPU support and configures an ingress allowing direct communication with Ollama)
-
-`35-install_open-webui_with_ollama.sh` : This installs Ollama and then Open WebUI. (You do not need to install Ollama before running this because this chart will install both Ollama and Open WebUI.) You must supply one of the following arguments to the script:
-
-* `without_gpu` (installs Ollama without GPU support and a single model and installs Open WebUI - you probably don't want this)
-* `with_gpu ` (Installs Ollama with GPU support and a single model and installs Open WebUI)
-* `with_gpu_and_milvus`  (Installs Ollama with GPU support and configures Ollaman and Open WebUI to use Milvus)
+|   Script   | Description |
+-------------|-------------|
+|`31-install_milvus.sh` | This installs Milvus on the AI cluster. Do this if you want to use the Milvus vector database in conjunction with Open WebUI. (*Note: The script `91-clean_up_milvus_PVCs.sh` can be used if you uninstall the Milvus deployment using Helm and want to remove the volumes that were created - they don't get removed automatically when uninstalling the deployment.*) |
+|`32-install_ollama.sh` | This installs only Ollama. Do this if you want to deploy the AI stack in a more modular fashion or are not going to use Open WebUI. You must supply one of the following arguments to the script: `without_gpu` (installs Ollama without GPU support - you probably don't want this), `with_gpu`  (Installs Ollama with GPU support), `with_gpu_and_ingress`  (Installs Ollama with GPU support and configures an ingress allowing direct communication with Ollama) |
+|`35-install_open-webui_with_ollama.sh` | This installs Ollama and then Open WebUI. (You do not need to install Ollama before running this because this chart will install both Ollama and Open WebUI.) You must supply one of the following arguments to the script: `without_gpu` (installs Ollama without GPU support and a single model and installs Open WebUI - you probably don't want this), `with_gpu ` (Installs Ollama with GPU support and a single model and installs Open WebUI),`with_gpu_and_milvus`  (Installs Ollama with GPU support and configures Ollaman and Open WebUI to use Milvus) |
 
 ## Uninstall the SUSE AI Stack
 
 To wipe everything out so that you can start again from scratch, two scripts are provided to completely remove the K8s cluster:
 
-* `99a-uninstall_rke2_server.sh` : Completely uninstalls RKE2 from a server (control plane) node.
-
-* `99b-uninstall_rke2_agent.sh` : Completely uninstalls RKE2 from an agent (worker) node.
+|    Script    | Description |
+|--------------|-------------|
+|`99a-uninstall_rke2_server.sh`| Completely uninstalls RKE2 from a server (control plane) node.|
+|`99b-uninstall_rke2_agent.sh` | Completely uninstalls RKE2 from an agent (worker) node.|
 
 Some additional scripts are provided to help clean up after certain applications' helm chart uninstalls where not everything is cleaned up.
 
-* `91-clean_up_milvus_PVCs.sh` : Removes the PVCs and therefore the PV that were created by the Milvus Helm chart install but were not removed by the uninstall.
+|    Script    | Description |
+|--------------|-------------|
+|`91-clean_up_milvus_PVCs.sh`| Removes the PVCs and therefore the PV that were created by the Milvus Helm chart install but were not removed by the uninstall.|
