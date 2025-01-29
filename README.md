@@ -8,20 +8,68 @@ The starting point for these scripts is:
 * The NVIDIA drivers installed on the nodes with GPUs
   * If the OS is SLES install the NVIDIA-Compute module
   * If the OS is SL Micro follow the instructions to install the NVIDIA drivers -[Installing NVIDIA GPU Drivers on SUSE Linux Micro](https://documentation.suse.com/suse-ai/1.0/html/NVIDIA-GPU-driver-on-SL-Micro/index.html)
-* Rancher Manager installed on your management cluster
+  * Insure the open-iscsi package is installed on the cluster nodes in preparation for SUSE Storage (Longhorn) deployment
 * DNS/hostname resolution configured to resolve the cluster name (aicluster01.example.com) to the first control plane node's IP address, or if you have an HA K8s cluster, round-robin resolving to all of the control plane nodes' IP addresses or to a VIP that has been configured for the cluster
+* Rancher Manager installed on your management cluster (this can be donw using the scripts in the **Pre-work: Install the Rancher and Observability Clusters** section below)
+* SUSE Observability installed on its own cluster (this can also be done using the scripts in the **Pre-work: Install the Rancher and Observability Clusters** section below)
+
+## Pre-work: Install the Rancher and Observability Clusters
+
+If you do not already have Rancher Manager deployed into a management cluster and/or SUSE Observability deployed into another downstream cluster, do the following to deploy them:
+
+Note: SLES (or SL Micro?) must be installed on the cluster nodes for these clusters before running these scripts though the NVIDIA drivers do not need to be installed on these cluster nodes.
+
+1) Deploy the Rancher Manager Cluster
+
+   a) On the first Rancher Manager cluster node, the one that will be the (1st) control plan node, run the script: `01-install_first_rke2_server-rancher_cluster.sh` 
+
+2) Deploy Rancher Manager onto the Rancher Manager Cluster
+
+   a) On the first Rancher Manager cluster node run the script: `02-deploy_rancher_with_helm.sh`
+  
+3) Deploy the SUSE Observability Cluster
+
+   a) On the first SUSE Observability cluster node, the one that will be the (1st) control plan node, run the script: `03-install_first_rke2_server-observability_cluster.sh`
+   
+4) Import the Downstream SUSE Observability Cluster into Rancher Manager
+   
+   a) Log into the Rancher Manager Web UI as an admin user
+   
+   b) From the navigation pane on the left select: **Cluster Management**
+   
+   c) On the **Clusters** screen, in the top right corner, click: **Import Existing**
+   
+   d) On the **Cluster: Import** screen click on: **Generic**
+   
+   e) On the **Cluster : Import Generic** screen enter the cluster name and optionally a description and then in the bottom right corner click: **Create**
+   
+   f) Copy the command to be run (probably the one that bypasses SSL conformation for clusters with a self-signed certificates) and run it on your management machine or a cluster node in the SUSE Observability cluster that has the `kubectl` command installed
+   
+5) Deploy SUSE Observability into the SUSE Observability Cluster
+   
+   a) On the first SUSE Observability cluster node run the script: `04-install_observability.sh`
+   
+   b) Retrieve the admin password from the last line of the `suse-observability-values/templates/baseConfig_values.yaml` file
+   
+   c) In a web browser go to the SUSE Observability web UI and log in as the "admin" user with the password retrieved from the file in the previous step
+
+   d) Follow the steps here in the section titled **Accessing SUSE Observability** [here](https://docs.stackstate.com/get-started/k8s-suse-rancher-prime) to integrate SUSE Observability with Rancher Manager
 
 ## Install the SUSE AI Stack
 
 Do the following to deploy the SUSE AI stack:
 
 1) Deploy the RKE2 cluster on the Downstream AI Cluster
-   
-   a) On the first cluster node, the one that will be the (1st) control plan node, run the script: `01a-install_first_rke2_server.sh`   
-   
-   b) On the cluster nodes that will be worker nodes run the script: `01b-install_rke2_agent.sh`
 
-   c) If you want an HA cluster, on the other control plane nodes, run the script: `01c-install_additional_rke2_server.sh`
+   a) On the cluster nodes that have NVIDIA GPUs, to ensure the NVIDIA compute utils are installed, run the script: `10-install_nvidia_compute_utils.sh`
+   
+2) Deploy the RKE2 cluster on the Downstream AI Cluster
+   
+   a) On the first cluster node, the one that will be the (1st) control plan node, run the script: `11a-install_first_rke2_server.sh`   
+   
+   b) On the cluster nodes that will be worker nodes run the script: `11b-install_rke2_agent.sh`
+
+   c) If you want an HA cluster, on the other control plane nodes, run the script: `11c-install_additional_rke2_server.sh`
 
 3) Import the Downstream AI Cluster into Rancher Manager (optional at this point, can be done later)
    
@@ -40,42 +88,38 @@ Do the following to deploy the SUSE AI stack:
 
 4) Install the NVIDIA GPU Operator
    
-   a) On the cluster nodes that have NVIDIA GPUs, to ensure the NVIDIA compute utils are installed, run the script: `02-install_nvidia_compute_utils.sh`
-  
-   b) On your management machine, or any of the downstream AI cluster nodes that have the `kubectl` and `helm` commands installed, run the script: `03-install_nvidia_gpu_operator.sh`
+   a) On your management machine, or any of the downstream AI cluster nodes that have the `kubectl` and `helm` commands installed, run the script: `21-install_nvidia_gpu_operator.sh`
 
 
 5) Install SUSE Storage (Longhorn)
    
-   On your management machine, or any of the downstream AI cluster nodes that have the `kubectl` and `helm` commands installed, run the script: `04-install_longhorn.sh`
+   On your management machine, or any of the downstream AI cluster nodes that have the `kubectl` and `helm` commands installed, run the script: `22-install_longhorn.sh`
 
 
-6) Install SUSE Observability (StackState)
-   
-   On your management machine, or any of the downstream AI cluster nodes that have the `kubectl` and `helm` commands installed, run the script: `05-install_observability.sh`
-
-
-7) Install SUSE Security (NueVector)
+6) Install SUSE Security (NueVector)
    
    On your management machine, or any of the downstream AI cluster nodes that have the `kubectl` and `helm` commands installed, run the script:
 
 
-8) Configure Access to the SUSE Rancher Application Collection
+7) Configure Access to the SUSE Rancher Application Collection
    
-   On your management machine, or any of the downstream AI cluster nodes that have the `kubectl` and `helm` commands installed, run the script: `10-connect_to_app_collection.sh`
+   On your management machine, or any of the downstream AI cluster nodes that have the `kubectl` and `helm` commands installed, run the script: `29-connect_to_app_collection.sh`
 
+8) Install the SUSE Observability Agent into the AI Cluster
+
+   Follow the instructions in the section titled **Installing the SUSE Observability Agent** [here](https://docs.stackstate.com/get-started/k8s-suse-rancher-prime)
 
 At this point the base set of applications is installed on the downstream AI cluster. You can now use the following scripts to deploy the AI stack applications. These scripts can be run on your management machine or any of the downstream AI cluster nodes that have the `kubectl` and `helm` commands installed.
 
-`21-install_milvus.sh` : This installs Milvus on the AI cluster. Do this if you want to use the Milvus vector database in conjunction with Open WebUI.
+`31-install_milvus.sh` : This installs Milvus on the AI cluster. Do this if you want to use the Milvus vector database in conjunction with Open WebUI. (Note: The script `91-clean_up_milvus_PVCs.sh` can be used if you uninstall the Milvus deployment using Helm and want to remove the volumes that were created - they don't get removed automatically when uninstalling the deployment.)
 
-`22-install_ollama.sh` : This installs only Ollama with a single model. Do this if you want to deploy the AI stack in a more modular fashion or are not going to use Open WebUI. You must supply one of the following arguments to the script:
+`32-install_ollama.sh` : This installs only Ollama with a single model. Do this if you want to deploy the AI stack in a more modular fashion or are not going to use Open WebUI. You must supply one of the following arguments to the script:
 
 * `without_gpu` (installs Ollama without GPU support - you probably don't want this)
 * `with_gpu`  (Installs Ollama with GPU support)
 * `with_gpu_and_ingress`  (Installs Ollama with GPU support and configures an ingress allowing direct communication with Ollama)
 
-`25-install_open-webui_with_ollama.sh` : This installs Ollama and then Open WebUI. (You do not need to install Ollama before running this because this chart will install both Ollama and Open WebUI.) You must supply one of the following arguments to the script:
+`35-install_open-webui_with_ollama.sh` : This installs Ollama and then Open WebUI. (You do not need to install Ollama before running this because this chart will install both Ollama and Open WebUI.) You must supply one of the following arguments to the script:
 
 * `without_gpu` (installs Ollama without GPU support and a single model and installs Open WebUI - you probably don't want this)
 * `with_gpu ` (Installs Ollama with GPU support and a single model and installs Open WebUI)
