@@ -29,7 +29,7 @@ fi
 # You can either source in the variables from a common config file or
 # set the them in this script.
 
-CONFIG_FILE=deploy_suse_ai.cfg
+CONFIG_FILE=deploy_suse_observability.cfg
 
 if ! [ -z ${CONFIG_FILE} ]
 then
@@ -38,8 +38,7 @@ then
     source ${CONFIG_FILE}
 fi
 else
-  SUSE_AI_NAMESPACE=suse-observability
-  
+  OBSERVABILITY_NAMESPACE=suse-observability
   OBSERVABILITY_HOST=observability.example.com
   OBSERVABILITY_BASEURL=http://${OBSERVABILITY_HOST}
   OBSERVABILITY_SIZING_PROFILE=trial

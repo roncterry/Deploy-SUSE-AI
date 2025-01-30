@@ -3,7 +3,7 @@
 # You can either source in the variables from a common config file or
 # set them in this script.
 
-CONFIG_FILE=deploy_suse_ai.cfg
+CONFIG_FILE=deploy_suse_observability.cfg
 
 if ! [ -z ${CONFIG_FILE} ]
 then
