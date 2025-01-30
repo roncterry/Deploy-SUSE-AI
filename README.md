@@ -118,7 +118,7 @@ Do the following to deploy the SUSE AI stack:
    
    On your management machine, or any of the downstream AI cluster nodes that have the `kubectl` and `helm` commands installed, run the script: `25-install_suse_security.sh`
 
-   ***Note:** SUSE Security (NeuVector) can also be deployed onto the AI cluster using Rancher Manager. Make sure you modify the values to change the replicas counts to `1` if it is a single node cluster when it is deployed.*
+   ***Note:** SUSE Security (NeuVector) can also be deployed onto the AI cluster using Rancher Manager. Make sure you modify the values to change the replicas counts to `1` if it is a single node cluster when it is deployed. You can use the documentation in the common config file for reference.*
 
 
 10) Configure Access to the SUSE Rancher Application Collection
