@@ -53,7 +53,7 @@ Note: SLES (or SL Micro?) must be installed on the cluster nodes for these clust
 
       ***Note 1:** Ensure that the open-iscsi pacakge is installed on the cluster node(s) before deploying SUSE Storage Longhorn.*
    
-      ***Note 2:** SUSE Storage (Longhorn) can also be deployed onto the SUSE Observability cluster using Rancher Manager. Make sure you modify the values to change the replicas counts to `1` if it is a single node cluster when it is deployed.*
+      ***Note 2:** SUSE Storage (Longhorn) can also be deployed onto the SUSE Observability cluster using Rancher Manager. Make sure you modify the values to change the replicas counts to `1` if it is a single node cluster when it is deployed. You can use the documentation in the common config file for reference.*
    
 7) Deploy SUSE Observability into the SUSE Observability Cluster
    
@@ -111,7 +111,7 @@ Do the following to deploy the SUSE AI stack:
 
    ***Note 1:** Ensure that the open-iscsi pacakge is installed on the cluster node(s) before deploying SUSE Storage Longhorn.*
 
-   ***Note 2:** SUSE Storage (Longhorn) can also be deployed onto the AI cluster using Rancher Manager. Make sure you modify the values to change the replicas counts to `1` if it is a single node cluster when it is deployed.*
+   ***Note 2:** SUSE Storage (Longhorn) can also be deployed onto the AI cluster using Rancher Manager. Make sure you modify the values to change the replicas counts to `1` if it is a single node cluster when it is deployed. You can use the documentation in the common config file for reference.*
 
 
 8) Install SUSE Security (NueVector)
