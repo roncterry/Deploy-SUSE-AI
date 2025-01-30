@@ -99,11 +99,9 @@ Do the following to deploy the SUSE AI stack:
    
    f) Copy the command to be run (probably the one that bypasses SSL conformation for clusters with a self-signed certificates) and run it on your management machine or a cluster node that has the `kubectl` command installed
 
-
 5) Install the NVIDIA GPU Operator
    
    a) On your management machine, or any of the downstream AI cluster nodes that have the `kubectl` and `helm` commands installed, run the script: `21-install_nvidia_gpu_operator.sh`
-
 
 6) Install SUSE Storage (Longhorn)
    
@@ -113,21 +111,18 @@ Do the following to deploy the SUSE AI stack:
 
    ***Note 2:** SUSE Storage (Longhorn) can also be deployed onto the AI cluster using Rancher Manager. Make sure you modify the values to change the replicas counts to `1` if it is a single node cluster when it is deployed. You can use the documentation in the common config file for reference.*
 
-
-8) Install SUSE Security (NueVector)
+7) Install SUSE Security (NueVector)
    
    On your management machine, or any of the downstream AI cluster nodes that have the `kubectl` and `helm` commands installed, run the script: `25-install_suse_security.sh`
 
    ***Note:** SUSE Security (NeuVector) can also be deployed onto the AI cluster using Rancher Manager. Make sure you modify the values to change the replicas counts to `1` if it is a single node cluster when it is deployed. You can use the documentation in the common config file for reference.*
 
-
-10) Configure Access to the SUSE Rancher Application Collection
-   
-   On your management machine, or any of the downstream AI cluster nodes that have the `kubectl` and `helm` commands installed, run the script: `29-connect_to_app_collection.sh`
-
-11) Install the SUSE Observability Agent into the AI Cluster
+8) Install the SUSE Observability Agent into the AI Cluster
 
    Follow the instructions in the section titled **Installing the SUSE Observability Agent** [here](https://docs.stackstate.com/get-started/k8s-suse-rancher-prime)
+9) Configure Access to the SUSE Rancher Application Collection
+   
+   On your management machine, or any of the downstream AI cluster nodes that have the `kubectl` and `helm` commands installed, run the script: `29-connect_to_app_collection.sh`
 
 At this point the base set of applications is installed on the downstream AI cluster. You can now use the following scripts to deploy the AI stack applications. These scripts can be run on your management machine or any of the downstream AI cluster nodes that have the `kubectl` and `helm` commands installed.
 
