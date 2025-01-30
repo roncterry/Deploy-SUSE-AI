@@ -50,8 +50,12 @@ Note: SLES (or SL Micro?) must be installed on the cluster nodes for these clust
 5) Deploy SUSE Storage (Longhorn) into the Observability Cluster
 
    a) On the first SUSE Observability cluster node run the script: `04-install_longhorn-observability_cluster.sh`
+
+      ***Note 1:** Ensure that the open-iscsi pacakge is installed on the cluster node(s) before deploying SUSE Storage Longhorn.*
    
-6) Deploy SUSE Observability into the SUSE Observability Cluster
+      ***Note 2:** SUSE Storage (Longhorn) can also be deployed onto the SUSE Observability cluster using Rancher Manager. Make sure you modify the values to change the replicas counts to `1` if it is a single node cluster when it is deployed.*
+   
+7) Deploy SUSE Observability into the SUSE Observability Cluster
    
    a) On the first SUSE Observability cluster node run the script: `05-install_observability.sh`
    
@@ -105,17 +109,23 @@ Do the following to deploy the SUSE AI stack:
    
    On your management machine, or any of the downstream AI cluster nodes that have the `kubectl` and `helm` commands installed, run the script: `22-install_longhorn.sh`
 
+   ***Note 1:** Ensure that the open-iscsi pacakge is installed on the cluster node(s) before deploying SUSE Storage Longhorn.*
 
-7) Install SUSE Security (NueVector)
+   ***Note 2:** SUSE Storage (Longhorn) can also be deployed onto the AI cluster using Rancher Manager. Make sure you modify the values to change the replicas counts to `1` if it is a single node cluster when it is deployed.*
+
+
+8) Install SUSE Security (NueVector)
    
-   On your management machine, or any of the downstream AI cluster nodes that have the `kubectl` and `helm` commands installed, run the script:
+   On your management machine, or any of the downstream AI cluster nodes that have the `kubectl` and `helm` commands installed, run the script: `25-install_suse_security.sh`
+
+   ***Note:** SUSE Security (NeuVector) can also be deployed onto the AI cluster using Rancher Manager. Make sure you modify the values to change the replicas counts to `1` if it is a single node cluster when it is deployed.*
 
 
-8) Configure Access to the SUSE Rancher Application Collection
+10) Configure Access to the SUSE Rancher Application Collection
    
    On your management machine, or any of the downstream AI cluster nodes that have the `kubectl` and `helm` commands installed, run the script: `29-connect_to_app_collection.sh`
 
-9) Install the SUSE Observability Agent into the AI Cluster
+11) Install the SUSE Observability Agent into the AI Cluster
 
    Follow the instructions in the section titled **Installing the SUSE Observability Agent** [here](https://docs.stackstate.com/get-started/k8s-suse-rancher-prime)
 
