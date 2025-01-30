@@ -29,7 +29,9 @@ Note: SLES (or SL Micro?) must be installed on the cluster nodes for these clust
   
 3) Deploy the SUSE Observability Cluster
 
-   a) On the first SUSE Observability cluster node, the one that will be the (1st) control plan node, run the script: `03-install_first_rke2_server-observability_cluster.sh`
+   a) View/edit the common observability deployment config file (`deploy_suse_observability.cfg`) and make any changes needed such as the number of replicas counts (for single node clusters leave all of the replica counts at `1`)
+
+   b) On the first SUSE Observability cluster node, the one that will be the (1st) control plan node, run the script: `03-install_first_rke2_server-observability_cluster.sh`
    
 4) Import the Downstream SUSE Observability Cluster into Rancher Manager
    
@@ -45,9 +47,13 @@ Note: SLES (or SL Micro?) must be installed on the cluster nodes for these clust
    
    f) Copy the command to be run (probably the one that bypasses SSL conformation for clusters with a self-signed certificates) and run it on your management machine or a cluster node in the SUSE Observability cluster that has the `kubectl` command installed
    
-5) Deploy SUSE Observability into the SUSE Observability Cluster
+5) Deploy SUSE Storage (Longhorn) into the Observability Cluster
+
+   a) On the first SUSE Observability cluster node run the script: `04-install_longhorn-observability_cluster.sh`
    
-   a) On the first SUSE Observability cluster node run the script: `04-install_observability.sh`
+6) Deploy SUSE Observability into the SUSE Observability Cluster
+   
+   a) On the first SUSE Observability cluster node run the script: `05-install_observability.sh`
    
    b) Retrieve the admin password from the last line of the `suse-observability-values/templates/baseConfig_values.yaml` file
    
@@ -59,11 +65,13 @@ Note: SLES (or SL Micro?) must be installed on the cluster nodes for these clust
 
 Do the following to deploy the SUSE AI stack:
 
-1) Ensure the NVIDIA Compute Utils are Installed on the Nodes with a GPU
+1) View/edit the common SUSE AI deployment config file (`deploy_suse_ai.cfg`) and make any changes needed such as replica counts (for single node clusters leave all of the replica counts at `1`)
+
+2) Ensure the NVIDIA Compute Utils are Installed on the Nodes with a GPU
 
    a) On the cluster nodes that have NVIDIA GPUs, to ensure the NVIDIA compute utils are installed, run the script: `10-install_nvidia_compute_utils.sh`
    
-2) Deploy the RKE2 cluster on the Downstream AI Cluster
+3) Deploy the RKE2 cluster on the Downstream AI Cluster
    
    a) On the first cluster node, the one that will be the (1st) control plan node, run the script: `11a-install_first_rke2_server.sh`   
    
