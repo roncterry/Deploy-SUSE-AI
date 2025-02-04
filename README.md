@@ -21,7 +21,7 @@ Note: SLES (or SL Micro?) must be installed on the cluster nodes for these clust
 
 1) Deploy the Rancher Manager Cluster
 
-   a) On the first Rancher Manager cluster node, the one that will be the (1st) control plan node, run the script (Note: This script requires root privileges): `01-install_first_rke2_server-rancher_cluster.sh` 
+   a) On the first Rancher Manager cluster node, the one that will be the (1st) control plan node, run the script (***Note:** This script requires root privileges*): `01-install_first_rke2_server-rancher_cluster.sh` 
 
 2) Deploy Rancher Manager onto the Rancher Manager Cluster
 
@@ -31,7 +31,7 @@ Note: SLES (or SL Micro?) must be installed on the cluster nodes for these clust
 
    a) View/edit the common observability deployment config file (`deploy_suse_observability.cfg`) and make any changes needed such as the number of replicas counts (for single node clusters leave all of the replica counts at `1`)
 
-   b) On the first SUSE Observability cluster node, the one that will be the (1st) control plan node, run the script (Note: This script requires root privileges): `03-install_first_rke2_server-observability_cluster.sh`
+   b) On the first SUSE Observability cluster node, the one that will be the (1st) control plan node, run the script (***Note:** This script requires root privileges.*): `03-install_first_rke2_server-observability_cluster.sh`
    
 4) Import the Downstream SUSE Observability Cluster into Rancher Manager
    
@@ -73,19 +73,19 @@ Do the following to deploy the SUSE AI stack:
 
 2) Ensure the NVIDIA Compute Utils are Installed on the Nodes with a GPU
 
-   a) On the cluster nodes that have NVIDIA GPUs, to ensure the NVIDIA compute utils are installed, run the script (Note: This script requires root privileges): `10-install_nvidia_compute_utils.sh`
+   a) On the cluster nodes that have NVIDIA GPUs, to ensure the NVIDIA compute utils are installed, run the script (***Note:** This script requires root privileges.*): `10-install_nvidia_compute_utils.sh`
    
 3) Deploy the RKE2 cluster on the Downstream AI Cluster
    
-   a) On the first cluster node, the one that will be the (1st) control plan node, run the script (Note: This script requires root privileges): `11a-install_first_rke2_server.sh`   
+   a) On the first cluster node, the one that will be the (1st) control plan node, run the script (***Note:** This script requires root privileges.*): `11a-install_first_rke2_server.sh`   
    
-   b) If you want an HA cluster, on the other control plane nodes, run the script (Note: This script requires root privileges): `11b-install_additional_rke2_server.sh`
+   b) If you want an HA cluster, on the other control plane nodes, run the script (***Note:** This script requires root privileges.*): `11b-install_additional_rke2_server.sh`
 
-   c) On the cluster nodes that will be worker nodes run the script (Note: This script requires root privileges): `11c-install_rke2_agent.sh`
+   c) On the cluster nodes that will be worker nodes run the script (***Note:** This script requires root privileges.*): `11c-install_rke2_agent.sh`
 
    d) To retrieve the `kubectl` command and the kubeconfig file from the AI cluster and install them onto your management machine, on the management machine run the script: `12a-retrieve_kubectl_and_kubeconfig_from_rke2.sh`
 
-     ***Note:** If you want to run the `kubectl` command on the cluster node itself as non-root user you can use the `12b-copy_kubeconfig.sh` script to copy the kubeconfig to different users. If the script is run as the root user you provide the target username to copy the kubeconfig to (Example: `12b-copy_kubeconfig.sh <username>`). If the script is run by the target user the target username does not need to be provided (Example: `12b-copy_kubeconfig.sh`).**
+     ***Note:** If you want to run the `kubectl` command on the cluster node itself as non-root user you can use the `12b-copy_kubeconfig.sh` script to copy the kubeconfig to different users. If the script is run as the root user you provide the target username to copy the kubeconfig to (Example: `12b-copy_kubeconfig.sh <username>`). If the script is run by the target user the target username does not need to be provided (Example: `12b-copy_kubeconfig.sh`).*
 
 5) Import the Downstream AI Cluster into Rancher Manager (optional at this point, can be done later)
    
