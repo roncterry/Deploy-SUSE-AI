@@ -71,9 +71,9 @@ Do the following to deploy the SUSE AI stack:
 
 1) View/edit the common SUSE AI deployment config file (`deploy_suse_ai.cfg`) and make any changes needed such as replica counts (for single node clusters leave all of the replica counts at `1`)
 
-2) Ensure the NVIDIA Compute Utils are Installed on the Nodes with a GPU
+2) Ensure the NVIDIA Driver and Compute Utils are Installed on the Nodes with a GPU
 
-   a) On the cluster nodes that have NVIDIA GPUs, to ensure the NVIDIA compute utils are installed, run the script (***Note:** This script requires root privileges.*): `10-install_nvidia_compute_utils.sh`
+   a) On the cluster nodes that have NVIDIA GPUs, to ensure the NVIDIA driver and compute utils are installed, run the script (***Note:** This script requires root privileges.*): `10-install_nvidia_compute_utils.sh`
    
 3) Deploy the RKE2 cluster on the Downstream AI Cluster
    
