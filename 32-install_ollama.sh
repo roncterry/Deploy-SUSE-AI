@@ -78,35 +78,33 @@ global:
 persistence:
   enabled: true
   storageClass: ${STORAGE_CLASS_NAME}
-ingress:
-  host: ${WEBUI_INGRESS_HOST}
 ollama:
   defaultModel: ${OLLAMA_MODEL_0}
   models:" > ollama_custom_overrides.yaml
 
   if ! [ -z ${OLLAMA_MODEL_0} ]
   then
-    echo "    - \"${OLLAMA_MODEL_0}\" " >> ollama_custom_overrides.yaml
+    echo "  - \"${OLLAMA_MODEL_0}\" " >> ollama_custom_overrides.yaml
   fi
 
   if ! [ -z ${OLLAMA_MODEL_1} ]
   then
-    echo "    - \"${OLLAMA_MODEL_1}\" " >> ollama_custom_overrides.yaml
+    echo "  - \"${OLLAMA_MODEL_1}\" " >> ollama_custom_overrides.yaml
   fi
 
   if ! [ -z ${OLLAMA_MODEL_2} ]
   then
-    echo "    - \"${OLLAMA_MODEL_2}\" " >> ollama_custom_overrides.yaml
+    echo "  - \"${OLLAMA_MODEL_2}\" " >> ollama_custom_overrides.yaml
   fi
 
   if ! [ -z ${OLLAMA_MODEL_3} ]
   then
-    echo "    - \"${OLLAMA_MODEL_3}\" " >> ollama_custom_overrides.yaml
+    echo "  - \"${OLLAMA_MODEL_3}\" " >> ollama_custom_overrides.yaml
   fi
 
   if ! [ -z ${OLLAMA_MODEL_4} ]
   then
-    echo "    - \"${OLLAMA_MODEL_4}\" " >> ollama_custom_overrides.yaml
+    echo "  - \"${OLLAMA_MODEL_4}\" " >> ollama_custom_overrides.yaml
   fi
 }
 
@@ -137,8 +135,7 @@ with_nvidia_gpu() {
     enabled: true
     type: nvidia
     number: 1
-  runtimeClassName: nvidia
-" >> ollama_custom_overrides.yaml
+  runtimeClassName: nvidia " >> ollama_custom_overrides.yaml
 
   #echo "COMMAND:
   #helm install ollama \
@@ -165,14 +162,13 @@ with_nvidia_gpu() {
 }
 
 with_ingress() {
-  echo "  ingress:
-    enabled: true
-    hosts:
-      - host: ${OLLAMA_INGRESS_HOST}
-        paths: 
-          - path: /
-            pathType: Prefix
-" >> ollama_custom_overrides.yaml
+  echo "ingress:
+  enabled: true
+  hosts:
+  - host: ${OLLAMA_INGRESS_HOST}
+    paths: 
+    - path: /
+      pathType: Prefix " >> ollama_custom_overrides.yaml
 
   #echo "COMMAND:
   #helm install ollama \
@@ -231,6 +227,9 @@ case ${1} in
     create_ollama_custom_overrides_file
     with_nvidia_gpu
     with_ingress
+    echo
+    cat ollama_custom_overrides.yaml
+    echo
   ;;
   without_gpu)
     log_into_app_collection
@@ -239,11 +238,13 @@ case ${1} in
   ;;
   with_gpu)
     log_into_app_collection
+    create_ollama_custom_overrides_file
     with_nvidia_gpu
     install_ollama
   ;;
   with_gpu_and_ingress)
     log_into_app_collection
+    create_ollama_custom_overrides_file
     with_nvidia_gpu
     with_ingress
     install_ollama

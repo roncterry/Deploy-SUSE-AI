@@ -104,27 +104,27 @@ add_ollama_config_to_custom_overrides_file() {
 
       if ! [ -z ${OLLAMA_MODEL_0} ]
       then
-        echo "      - \"${OLLAMA_MODEL_0}\" " >> owui_custom_overrides.yaml
+        echo "    - \"${OLLAMA_MODEL_0}\" " >> owui_custom_overrides.yaml
       fi
   
       if ! [ -z ${OLLAMA_MODEL_1} ]
       then
-        echo "      - \"${OLLAMA_MODEL_1}\" " >> owui_custom_overrides.yaml
+        echo "    - \"${OLLAMA_MODEL_1}\" " >> owui_custom_overrides.yaml
       fi
   
       if ! [ -z ${OLLAMA_MODEL_2} ]
       then
-        echo "      - \"${OLLAMA_MODEL_2}\" " >> owui_custom_overrides.yaml
+        echo "    - \"${OLLAMA_MODEL_2}\" " >> owui_custom_overrides.yaml
       fi
   
       if ! [ -z ${OLLAMA_MODEL_3} ]
       then
-        echo "      - \"${OLLAMA_MODEL_3}\" " >> owui_custom_overrides.yaml
+        echo "    - \"${OLLAMA_MODEL_3}\" " >> owui_custom_overrides.yaml
       fi
   
       if ! [ -z ${OLLAMA_MODEL_4} ]
       then
-        echo "      - \"${OLLAMA_MODEL_4}\" " >> owui_custom_overrides.yaml
+        echo "    - \"${OLLAMA_MODEL_4}\" " >> owui_custom_overrides.yaml
       fi
     ;;
     False|false|FALSE)
@@ -197,7 +197,6 @@ case ${1} in
     add_nvidia_gpu_to_custom_overrides_file
     add_extra_envvars_to_custom_overrides_file
     add_milvus_to_custom_overrides_file
-    cat owui_custom_overrides.yaml
   ;;
   without_gpu)
     install_certmanager_crds

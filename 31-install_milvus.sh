@@ -139,7 +139,7 @@ kafka:
     labels: {}
     existingClaim: \"\"
     accessModes:
-      - ReadWriteOnce
+    - ReadWriteOnce
     resources:
       requests:
         storage: ${KAFKA_VOLUME_SIZE}
