@@ -83,38 +83,39 @@ ingress:
 
 install_observability() {
   echo
-  echo "COMMAND: helm upgrade --install --namespace ${SUSE_AI_NAMESPACE} --create-namespace --values ${OBSERVABILITY_VALUES_DIR}/suse-observability-values/templates/baseConfig_values.yaml --values ${OBSERVABILITY_VALUES_DIR}/suse-observability-values/templates/sizing_values.yaml --values ${OBSERVABILITY_VALUES_DIR}/suse-observability-values/templates/ingress_values.yaml suse-observability suse-observability/suse-observability"
-  helm upgrade --install --namespace ${SUSE_AI_NAMESPACE} --create-namespace --values ${OBSERVABILITY_VALUES_DIR}/suse-observability-values/templates/baseConfig_values.yaml --values ${OBSERVABILITY_VALUES_DIR}/suse-observability-values/templates/sizing_values.yaml --values ${OBSERVABILITY_VALUES_DIR}/suse-observability-values/templates/ingress_values.yaml suse-observability suse-observability/suse-observability
+  echo "COMMAND: helm upgrade --install --namespace ${OBSERVABILITY_NAMESPACE} --create-namespace --values ${OBSERVABILITY_VALUES_DIR}/suse-observability-values/templates/baseConfig_values.yaml --values ${OBSERVABILITY_VALUES_DIR}/suse-observability-values/templates/sizing_values.yaml --values ${OBSERVABILITY_VALUES_DIR}/suse-observability-values/templates/ingress_values.yaml suse-observability suse-observability/suse-observability"
+  helm upgrade --install --namespace ${OBSERVABILITY_NAMESPACE} --create-namespace --values ${OBSERVABILITY_VALUES_DIR}/suse-observability-values/templates/baseConfig_values.yaml --values ${OBSERVABILITY_VALUES_DIR}/suse-observability-values/templates/sizing_values.yaml --values ${OBSERVABILITY_VALUES_DIR}/suse-observability-values/templates/ingress_values.yaml suse-observability suse-observability/suse-observability
 
-  echo
-  sleep 5
-  echo "COMMAND: kubectl -n ${SUSE_AI_NAMESPACE} rollout status deploy/suse-observability-kafkaup-operator-kafkaup"
-  kubectl -n ${SUSE_AI_NAMESPACE} rollout status deploy/suse-observability-kafkaup-operator-kafkaup
-  echo
-  echo "COMMAND: kubectl -n ${SUSE_AI_NAMESPACE} rollout status deploy/suse-observability-prometheus-elasticsearch-exporter"
-  kubectl -n ${SUSE_AI_NAMESPACE} rollout status deploy/suse-observability-prometheus-elasticsearch-exporter
-  echo
-  echo "COMMAND: kubectl -n ${SUSE_AI_NAMESPACE} rollout status deploy/suse-observability-router"
-  kubectl -n ${SUSE_AI_NAMESPACE} rollout status deploy/suse-observability-router
-  echo
-  echo "COMMAND: kubectl -n ${SUSE_AI_NAMESPACE} rollout status deploy/suse-observability-ui"
-  kubectl -n ${SUSE_AI_NAMESPACE} rollout status deploy/suse-observability-ui
-  echo
-  #echo "COMMAND: kubectl -n ${SUSE_AI_NAMESPACE} rollout status deploy/suse-observability-hbase-console"
-  #kubectl -n ${SUSE_AI_NAMESPACE} rollout status deploy/suse-observability-console
-  #echo
-  echo "COMMAND: kubectl -n ${SUSE_AI_NAMESPACE} rollout status deploy/suse-observability-hbase-correlate"
-  kubectl -n ${SUSE_AI_NAMESPACE} rollout status deploy/suse-observability-correlate
-  echo
-  echo "COMMAND: kubectl -n ${SUSE_AI_NAMESPACE} rollout status deploy/suse-observability-e2es"
-  kubectl -n ${SUSE_AI_NAMESPACE} rollout status deploy/suse-observability-e2es
-  echo
-  echo "COMMAND: kubectl -n ${SUSE_AI_NAMESPACE} rollout status deploy/suse-observability-receiver"
-  kubectl -n ${SUSE_AI_NAMESPACE} rollout status deploy/suse-observability-receiver
-  echo
-  echo "COMMAND: kubectl -n ${SUSE_AI_NAMESPACE} rollout status deploy/suse-observability-server"
-  kubectl -n ${SUSE_AI_NAMESPACE} rollout status deploy/suse-observability-server
-  echo
+echo
+sleep 5
+echo "COMMAND: kubectl rollout status deploy/suse-observability-kafkaup-operator-kafkaup -n ${OBSERVABILITY_NAMESPACE}"
+kubectl rollout status deploy/suse-observability-kafkaup-operator-kafkaup -n ${OBSERVABILITY_NAMESPACE}
+echo
+echo "COMMAND: kubectl rollout status deploy/suse-observability-prometheus-elasticsearch-exporter -n ${OBSERVABILITY_NAMESPACE}"
+kubectl rollout status deploy/suse-observability-prometheus-elasticsearch-exporter -n ${OBSERVABILITY_NAMESPACE}
+echo
+echo "COMMAND: kubectl rollout status deploy/suse-observability-router -n ${OBSERVABILITY_NAMESPACE}"
+kubectl rollout status deploy/suse-observability-router -n ${OBSERVABILITY_NAMESPACE}
+echo
+echo "COMMAND: kubectl rollout status deploy/suse-observability-ui -n ${OBSERVABILITY_NAMESPACE}"
+kubectl rollout status deploy/suse-observability-ui -n ${OBSERVABILITY_NAMESPACE}
+echo
+#echo "COMMAND: kubectl rollout status deploy/suse-observability-hbase-console -n ${OBSERVABILITY_NAMESPACE}"
+#kubectl rollout status deploy/suse-observability-console -n ${OBSERVABILITY_NAMESPACE}
+#echo
+echo "COMMAND: kubectl rollout status deploy/suse-observability-hbase-correlate -n ${OBSERVABILITY_NAMESPACE}"
+kubectl rollout status deploy/suse-observability-correlate -n ${OBSERVABILITY_NAMESPACE}
+echo
+echo "COMMAND: kubectl rollout status deploy/suse-observability-e2es -n ${OBSERVABILITY_NAMESPACE}"
+kubectl rollout status deploy/suse-observability-e2es -n ${OBSERVABILITY_NAMESPACE}
+echo
+echo "COMMAND: kubectl rollout status deploy/suse-observability-receiver -n ${OBSERVABILITY_NAMESPACE}"
+kubectl rollout status deploy/suse-observability-receiver -n ${OBSERVABILITY_NAMESPACE}
+echo
+echo "COMMAND: kubectl rollout status deploy/suse-observability-server -n ${OBSERVABILITY_NAMESPACE}"
+kubectl rollout status deploy/suse-observability-server -n ${OBSERVABILITY_NAMESPACE}
+echo
+
 }
 
 ##############################################################################
