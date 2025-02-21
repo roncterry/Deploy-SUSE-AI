@@ -46,6 +46,12 @@ spec:
       env:
       - name: CONTAINERD_SOCKET
         value: /run/k3s/containerd/containerd.sock
+      - name: CONTAINERD_CONFIG
+        value: /var/lib/rancher/rke2/agent/etc/containerd/config.toml.tmpl
+      - name: CONTAINERD_RUNTIME_CLASS
+        value: nvidia
+      - name: CONTAINERD_SET_AS_DEFAULT
+        value: true
 " > nvidia-gpu-operator.yaml
 
   cat nvidia-gpu-operator.yaml
