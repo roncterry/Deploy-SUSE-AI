@@ -61,7 +61,15 @@ spec:
   kubectl apply -f nvidia-gpu-operator.yaml
   echo
 
-  sleep 15
+  echo -n "Waiting for namespace to be created "
+  until kubectl get namespaces | grep -q gpu-operator
+  do
+    echo -n "."
+    sleep 2
+  done
+  echo "."
+  echo
+
   echo "COMMAND: kubectl -n gpu-operator rollout status deploy/gpu-operator"
   kubectl -n gpu-operator rollout status deploy/gpu-operator
   echo

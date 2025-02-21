@@ -99,7 +99,15 @@ case ${NODE_TYPE} in
     kubectl completion bash | sudo tee /etc/bash_completion.d/kubectl > /dev/null
     echo
 
-    sleep 5
+    echo -n "Waiting for node to be ready "
+    until kubectl get nodes | grep -q " Ready"
+    do
+      echo -n "."
+      sleep 2
+    done
+    echo "."
+    echo
+
     echo "COMMAND: kubectl get nodes"
     kubectl get nodes
     echo
