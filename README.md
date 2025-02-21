@@ -4,6 +4,7 @@ Scripts used to automate the deployment of the SUSE AI stack.
 
 The starting point for these scripts is:
 
+* A [SUSE Customer Center](https://scc.suse.com/) login with a current subscription for Rancher Prime, SUSE Observability and SUSE AI 
 * One or more downstream AI cluster nodes that have a SLES (or SL Micro?) OS installed on them (***Note**: These scripts have been tested on SLES but not SL Micro*)
 * The NVIDIA drivers installed on the nodes with GPUs
   * If the OS is SLES install the NVIDIA-Compute module
@@ -31,9 +32,11 @@ Note: SLES (or SL Micro?) must be installed on the cluster nodes for these clust
 
    a) View/edit the common observability deployment config file (`deploy_suse_observability.cfg`) and make any changes needed such as the number of replicas counts (for single node clusters leave all of the replica counts at `1`)
 
-   b) On the first SUSE Observability cluster node, the one that will be the (1st) control plan node, run the script (***Note:** This script requires root privileges.*): `03-install_first_rke2_server-observability_cluster.sh`
+   b) Edit the `authentication_and_licenses.cfg` file to add your Observability license key. (Note: you can also add your SUSE Application Collection service account or access toke info at the same time)
    
-4) Import the Downstream SUSE Observability Cluster into Rancher Manager
+   c) On the first SUSE Observability cluster node, the one that will be the (1st) control plan node, run the script (***Note:** This script requires root privileges.*): `03-install_first_rke2_server-observability_cluster.sh`
+   
+5) Import the Downstream SUSE Observability Cluster into Rancher Manager
    
    a) Log into the Rancher Manager Web UI as an admin user
    
@@ -47,7 +50,7 @@ Note: SLES (or SL Micro?) must be installed on the cluster nodes for these clust
    
    f) Copy the command to be run (probably the one that bypasses SSL conformation for clusters with a self-signed certificates) and run it on your management machine or a cluster node in the SUSE Observability cluster that has the `kubectl` command installed
    
-5) Deploy SUSE Storage (Longhorn) into the Observability Cluster
+6) Deploy SUSE Storage (Longhorn) into the Observability Cluster
 
    a) On the first SUSE Observability cluster node run the script: `04-install_longhorn-observability_cluster.sh`
 
@@ -69,7 +72,7 @@ Note: SLES (or SL Micro?) must be installed on the cluster nodes for these clust
 
 Do the following to deploy the SUSE AI stack:
 
-1) View/edit the common SUSE AI deployment config file (`deploy_suse_ai.cfg`) and make any changes needed such as replica counts (for single node clusters leave all of the replica counts at `1`)
+1) View/edit the common SUSE AI deployment config file (`deploy_suse_ai.cfg`) to make any changes needed such as replica counts (for single node clusters leave all of the replica counts at `1`)
 
 2) Ensure the NVIDIA Driver and Compute Utils are Installed on the Nodes with a GPU
 
@@ -87,7 +90,7 @@ Do the following to deploy the SUSE AI stack:
 
      ***Note:** If you want to run the `kubectl` command on the cluster node itself as non-root user you can use the `12b-copy_kubeconfig.sh` script to copy the kubeconfig to different users. If the script is run as the root user you provide the target username to copy the kubeconfig to (Example: `12b-copy_kubeconfig.sh <username>`). If the script is run by the target user the target username does not need to be provided (Example: `12b-copy_kubeconfig.sh`).*
 
-5) Import the Downstream AI Cluster into Rancher Manager (optional at this point, can be done later)
+4) Import the Downstream AI Cluster into Rancher Manager (optional at this point, can be done later)
    
    a) Log into the Rancher Manager Web UI as an admin user
    
@@ -101,11 +104,11 @@ Do the following to deploy the SUSE AI stack:
    
    f) Copy the command to be run (probably the one that bypasses SSL conformation for clusters with a self-signed certificates) and run it on your management machine or a cluster node that has the `kubectl` command installed
 
-6) Install the NVIDIA GPU Operator
+5) Install the NVIDIA GPU Operator
    
    a) On your management machine, or any of the downstream AI cluster nodes that have the `kubectl` and `helm` commands installed, run the script: `21-install_nvidia_gpu_operator.sh`
 
-7) Install SUSE Storage (Longhorn)
+6) Install SUSE Storage (Longhorn)
    
    On your management machine, or any of the downstream AI cluster nodes that have the `kubectl` and `helm` commands installed, run the script: `22-install_longhorn.sh`
 
@@ -113,18 +116,21 @@ Do the following to deploy the SUSE AI stack:
 
    ***Note 2:** If the cluster has been imported into Rancher Manager SUSE Storage (Longhorn) can also be deployed onto the AI cluster using Rancher Manager. Make sure you modify the values to change the replicas counts to `1` if it is a single node cluster when it is deployed. You can use the documentation in the common config file for reference.*
 
-8) Install SUSE Security (NueVector)
+7) Install SUSE Security (NueVector)
    
    On your management machine, or any of the downstream AI cluster nodes that have the `kubectl` and `helm` commands installed, run the script: `25-install_suse_security.sh`
 
    ***Note:** If the cluster has been imported into Rancher Manager SUSE Security (NeuVector) can also be deployed onto the AI cluster using Rancher Manager. Make sure you modify the values to change the replicas counts to `1` if it is a single node cluster when it is deployed. You can use the documentation in the common config file for reference.*
 
-9) Install the SUSE Observability Agent into the AI Cluster
+8) Install the SUSE Observability Agent into the AI Cluster
 
    Follow the instructions in the section titled **Installing the SUSE Observability Agent** [here](https://docs.stackstate.com/get-started/k8s-suse-rancher-prime)
-10) Configure Access to the SUSE Rancher Application Collection
    
-   On your management machine, or any of the downstream AI cluster nodes that have the `kubectl` and `helm` commands installed, run the script: `29-connect_to_app_collection.sh`
+9) Configure Access to the SUSE Application Collection
+
+   a) Edit the `authentication_and_licenses.cfg` file to add your SUSE Application Collection service account or access token (if you didn't already add it above when adding the Observability license key)
+
+   b) On your management machine, or any of the downstream AI cluster nodes that have the `kubectl` and `helm` commands installed, run the script: `29-connect_to_app_collection.sh`
 
 At this point the base set of applications is installed on the downstream AI cluster. You can now use the following scripts to deploy the AI stack applications. These scripts can be run on your management machine or any of the downstream AI cluster nodes that have the `kubectl` and `helm` commands installed.
 
