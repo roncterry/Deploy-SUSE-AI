@@ -135,7 +135,7 @@ Do the following to deploy the SUSE AI stack:
 At this point the base set of applications is installed on the downstream AI cluster. You can now use the following scripts to deploy the AI stack applications. These scripts can be run on your management machine or any of the downstream AI cluster nodes that have the `kubectl` and `helm` commands installed.
 
 |   Script   | Description |
--------------|-------------|
+|-------------|-------------|
 |`31-install_milvus.sh` | This installs Milvus on the AI cluster. Do this if you want to use the Milvus vector database in conjunction with Open WebUI. (*Note: The script `91-clean_up_milvus_PVCs.sh` can be used if you uninstall the Milvus deployment using Helm and want to remove the volumes that were created - they don't get removed automatically when uninstalling the deployment.*) |
 |`32-install_ollama.sh` | This installs only Ollama. Do this if you want to deploy the AI stack in a more modular fashion or are not going to use Open WebUI. You must supply one of the following arguments to the script: `without_gpu` (installs Ollama without GPU support - you probably don't want this), `with_gpu`  (Installs Ollama with GPU support), `with_gpu_and_ingress`  (Installs Ollama with GPU support and configures an ingress allowing direct communication with Ollama) |
 |`35-install_open-webui_with_ollama.sh` | This installs Ollama and then Open WebUI. (You do not need to install Ollama before running this because this chart will install both Ollama and Open WebUI.) You must supply one of the following arguments to the script: `without_gpu` (installs Ollama without GPU support and a single model and installs Open WebUI - you probably don't want this), `with_gpu ` (Installs Ollama with GPU support and a single model and installs Open WebUI),`with_gpu_and_milvus`  (Installs Ollama with GPU support and configures Ollaman and Open WebUI to use Milvus) |
@@ -146,6 +146,7 @@ To wipe everything out so that you can start again from scratch, two scripts are
 
 |    Script    | Description |
 |--------------|-------------|
+|`98-reset_cluster.sh` | This script removes all AI Helm releases (Open WebUI, Ollama, Milvus) as well as the NVIDIA GPU Operator and also removes the namespaces where the AI Helm releases and GPU Operator were installed. It essentially resets the cluster back to baseline before AI deployment. It does not remove the SUSE Storage (Longhorn) deployment, the Rancher Manager agent, the SUSE Observability agent or SUSE Security leaving the storage infrastructure as well as the management, security and observation in place. |
 |`99a-uninstall_rke2_server.sh`| Completely uninstalls RKE2 from a server (control plane) node.|
 |`99b-uninstall_rke2_agent.sh` | Completely uninstalls RKE2 from an agent (worker) node.|
 
