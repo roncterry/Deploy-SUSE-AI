@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # You can either source in the variables from a common config file or
-# set the them in this script.
+# set them in this script.
 
 CONFIG_FILE=deploy_suse_ai.cfg
 
@@ -13,6 +13,7 @@ then
   fi
 else
   K8S_DISTRO=rke2
+  K8S_DISTRO_CHANNEL=v1.30
   CLUSTER_NAME=aicluster01
 fi
 
@@ -73,8 +74,8 @@ echo
 cat /etc/rancher/${K8S_DISTRO}/config.yaml
 echo
 
-echo "COMMAND: INSTALL_RKE2_TYPE=${NODE_TYPE} /root/${K8S_DISTRO}-install.sh"
-INSTALL_RKE2_TYPE=${NODE_TYPE} /root/${K8S_DISTRO}-install.sh
+echo "COMMAND: INSTALL_RKE2_TYPE=${NODE_TYPE} INSTALL_RKE2_CHANNEL=${K8S_DISTRO_CHANNEL} /root/${K8S_DISTRO}-install.sh"
+INSTALL_RKE2_TYPE=${NODE_TYPE} INSTALL_RKE2_CHANNEL=${K8S_DISTRO_CHANNEL} /root/${K8S_DISTRO}-install.sh
 echo
 
 echo "COMMAND: systemctl enable --now ${K8S_DISTRO}-${NODE_TYPE}.service"

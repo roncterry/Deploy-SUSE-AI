@@ -13,6 +13,7 @@ then
   fi
 else
   K8S_DISTRO=rke2
+  K8S_DISTRO_CHANNEL=stable
   CLUSTER_NAME=rancher
 fi
 
@@ -33,11 +34,19 @@ FIRST_SERVER=true
 #  Deploy RKE2
 #########################################
 
+echo "Downloading ${K8S_DISTRO} installer ..."
+echo "COMMAND: curl -sfL https://get.${K8S_DISTRO}.io --output /root/${K8S_DISTRO}-install.sh"
 curl -sfL https://get.${K8S_DISTRO}.io --output /root/${K8S_DISTRO}-install.sh
+
+echo "COMMAND: chmod +x /root/${K8S_DISTRO}-install.sh"
 chmod +x /root/${K8S_DISTRO}-install.sh
+echo
 
+echo "COMMAND: mkdir -p /etc/rancher/${K8S_DISTRO}"
 mkdir -p /etc/rancher/${K8S_DISTRO}
+echo
 
+echo "Writing out /etc/rancher/${K8S_DISTRO}/config.yaml file ..."
 case ${NODE_TYPE} in
   server)
     case ${FIRST_SERVER} in
@@ -61,10 +70,17 @@ case ${NODE_TYPE} in
     echo "token: ${CLUSTER_NAME}" >> /etc/rancher/${K8S_DISTRO}/config.yaml
   ;;
 esac
+echo
+cat /etc/rancher/${K8S_DISTRO}/config.yaml
+echo
 
-INSTALL_RKE2_TYPE=${NODE_TYPE} /root/${K8S_DISTRO}-install.sh
+echo "COMMAND: INSTALL_RKE2_TYPE=${NODE_TYPE} INSTALL_RKE2_CHANNEL=${K8S_DISTRO_CHANNEL} /root/${K8S_DISTRO}-install.sh"
+INSTALL_RKE2_TYPE=${NODE_TYPE} INSTALL_RKE2_CHANNEL=${K8S_DISTRO_CHANNEL} /root/${K8S_DISTRO}-install.sh
+echo
 
+echo "COMMAND: systemctl enable --now ${K8S_DISTRO}-${NODE_TYPE}.service"
 systemctl enable --now ${K8S_DISTRO}-${NODE_TYPE}.service
+echo
 
 case ${NODE_TYPE} in
   server)
@@ -82,6 +98,15 @@ case ${NODE_TYPE} in
 
     echo "COMMAND: kubectl completion bash | sudo tee /etc/bash_completion.d/kubectl > /dev/null"
     kubectl completion bash | sudo tee /etc/bash_completion.d/kubectl > /dev/null
+    echo
+
+    echo -n "Waiting for node to be ready "
+    until kubectl get nodes | grep -q " Ready"
+    do
+      echo -n "."
+      sleep 2
+    done
+    echo "."
     echo
 
     echo "COMMAND: kubectl get nodes"
