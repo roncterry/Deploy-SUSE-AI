@@ -49,7 +49,6 @@ else
   OLLAMA_MODEL_2=
   OLLAMA_MODEL_3=
   OLLAMA_MODEL_4=
-  MILVUS_URI=milvus.example.com
 fi
 
 LICENSES_FILE=authentication_and_licenses.cfg
@@ -182,6 +181,14 @@ install_open_webui() {
     -n ${SUSE_AI_NAMESPACE} --create-namespace \
     -f owui_custom_overrides.yaml \
     oci://dp.apps.rancher.io/charts/open-webui
+
+  case ${OWUI_OLLAMA_ENABLED} in
+    true|True|TRUE)
+      echo
+      echo "COMMAND: kubectl -n ${SUSE_AI_NAMESPACE} rollout status deploy/open-webui-ollama"
+      kubectl -n ${SUSE_AI_NAMESPACE} rollout status deploy/open-webui-ollama
+    ;;
+  esac
 
   echo
 }

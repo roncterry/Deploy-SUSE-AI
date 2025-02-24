@@ -123,15 +123,19 @@ csi:
   echo
 
   echo "-----------------------------------------------------------------------------"
+  echo 
   echo "COMMAND: kubectl get storageclasses"
   kubectl get storageclasses
   echo
 
   echo "-----------------------------------------------------------------------------"
+  echo 
   echo "COMMAND: kubectl describe storageclasses longhorn"
   kubectl describe storageclasses longhorn
   echo 
 
+  echo "-----------------------------------------------------------------------------"
+  echo 
 }
 
 create_longhorn_ingress() {

@@ -82,11 +82,35 @@ create_app_collection_secret() {
       echo "COMMAND: kubectl -n ${SUSE_AI_NAMESPACE} create secret docker-registry ${IMAGE_PULL_SECRET_NAME} --docker-server=dp.apps.rancher.io --docker-username=${APP_COLLECTION_USERNAME} --docker-password=${APP_COLLECTION_PASSWORD}"
       kubectl -n ${SUSE_AI_NAMESPACE} create secret docker-registry ${IMAGE_PULL_SECRET_NAME} --docker-server=dp.apps.rancher.io --docker-username=${APP_COLLECTION_USERNAME} --docker-password=${APP_COLLECTION_PASSWORD}
       echo
+      echo "-----------------------------------------------------------------------------"
+      echo
+      echo "COMMAND: kubectl -n ${SUSE_AI_NAMESPACE} get secrets"
+      kubectl -n ${SUSE_AI_NAMESPACE} get secrets
+      echo
+      echo "-----------------------------------------------------------------------------"
+      echo
+      echo "COMMAND: kubectl -n ${SUSE_AI_NAMESPACE} describe secret ${IMAGE_PULL_SECRET_NAME}"
+      kubectl -n ${SUSE_AI_NAMESPACE} describe secret ${IMAGE_PULL_SECRET_NAME}
+      echo
+      echo "-----------------------------------------------------------------------------"
+      echo
     else
       echo "COMMAND: kubectl -n ${SUSE_AI_NAMESPACE} delete secret ${IMAGE_PULL_SECRET_NAME}"
       kubectl -n ${SUSE_AI_NAMESPACE} delete secret ${IMAGE_PULL_SECRET_NAME}
       echo "COMMAND: kubectl -n ${SUSE_AI_NAMESPACE} create secret docker-registry ${IMAGE_PULL_SECRET_NAME} --docker-server=dp.apps.rancher.io --docker-username=${APP_COLLECTION_USERNAME} --docker-password=${APP_COLLECTION_PASSWORD}"
       kubectl -n ${SUSE_AI_NAMESPACE} create secret docker-registry ${IMAGE_PULL_SECRET_NAME} --docker-server=dp.apps.rancher.io --docker-username=${APP_COLLECTION_USERNAME} --docker-password=${APP_COLLECTION_PASSWORD}
+      echo
+      echo "-----------------------------------------------------------------------------"
+      echo
+      echo "COMMAND: kubectl -n ${SUSE_AI_NAMESPACE} get secrets"
+      kubectl -n ${SUSE_AI_NAMESPACE} get secrets
+      echo
+      echo "-----------------------------------------------------------------------------"
+      echo
+      echo "COMMAND: kubectl -n ${SUSE_AI_NAMESPACE} describe secret ${IMAGE_PULL_SECRET_NAME}"
+      kubectl -n ${SUSE_AI_NAMESPACE} describe secret ${IMAGE_PULL_SECRET_NAME}
+      echo
+      echo "-----------------------------------------------------------------------------"
       echo
     fi
   else
@@ -95,11 +119,35 @@ create_app_collection_secret() {
       echo "COMMAND: kubectl create secret docker-registry ${IMAGE_PULL_SECRET_NAME} --docker-server=dp.apps.rancher.io --docker-username=${APP_COLLECTION_USERNAME} --docker-password=${APP_COLLECTION_PASSWORD}"
       kubectl create secret docker-registry ${IMAGE_PULL_SECRET_NAME} --docker-server=dp.apps.rancher.io --docker-username=${APP_COLLECTION_USERNAME} --docker-password=${APP_COLLECTION_PASSWORD}
       echo
+      echo "-----------------------------------------------------------------------------"
+      echo
+      echo "COMMAND: kubectl get secrets"
+      kubectl get secrets
+      echo
+      echo "-----------------------------------------------------------------------------"
+      echo
+      echo "COMMAND: kubectl describe secret ${IMAGE_PULL_SECRET_NAME}"
+      kubectl describe secret ${IMAGE_PULL_SECRET_NAME}
+      echo
+      echo "-----------------------------------------------------------------------------"
+      echo
     else
       echo "COMMAND: kubectl delete secret ${IMAGE_PULL_SECRET_NAME}"
       kubectl delete secret ${IMAGE_PULL_SECRET_NAME}
       echo "COMMAND: kubectl create secret docker-registry ${IMAGE_PULL_SECRET_NAME} --docker-server=dp.apps.rancher.io --docker-username=${APP_COLLECTION_USERNAME} --docker-password=${APP_COLLECTION_PASSWORD}"
       kubectl create secret docker-registry ${IMAGE_PULL_SECRET_NAME} --docker-server=dp.apps.rancher.io --docker-username=${APP_COLLECTION_USERNAME} --docker-password=${APP_COLLECTION_PASSWORD}
+      echo
+      echo "-----------------------------------------------------------------------------"
+      echo
+      echo "COMMAND: kubectl get secrets"
+      kubectl get secrets
+      echo
+      echo "-----------------------------------------------------------------------------"
+      echo
+      echo "COMMAND: kubectl describe secret ${IMAGE_PULL_SECRET_NAME}"
+      kubectl describe secret ${IMAGE_PULL_SECRET_NAME}
+      echo
+      echo "-----------------------------------------------------------------------------"
       echo
     fi
   fi

@@ -217,6 +217,10 @@ install_ollama() {
     oci://dp.apps.rancher.io/charts/ollama
 
   echo
+  echo "COMMAND: kubectl -n ${SUSE_AI_NAMESPACE} rollout status deploy/ollama"
+  kubectl -n ${SUSE_AI_NAMESPACE} rollout status deploy/ollama
+
+  echo
 }
 
 ##############################################################################

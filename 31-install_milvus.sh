@@ -161,6 +161,17 @@ deploy_milvus() {
     -f milvus_custom_overrides.yaml \
     oci://dp.apps.rancher.io/charts/milvus
 
+  case ${MILVUS_CLUSTER_ENABLED} in
+    false|False|FALSE)
+      echo
+      echo "COMMAND: kubectl -n ${SUSE_AI_NAMESPACE} rollout status deploy/milvus-minio"
+      kubectl -n ${SUSE_AI_NAMESPACE} rollout status deploy/milvus-minio
+      echo
+      echo "COMMAND: kubectl -n ${SUSE_AI_NAMESPACE} rollout status deploy/milvus-standalone"
+      kubectl -n ${SUSE_AI_NAMESPACE} rollout status deploy/milvus-standalone
+    ;;
+  esac
+
   echo
 }
 
