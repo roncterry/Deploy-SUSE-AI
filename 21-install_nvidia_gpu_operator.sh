@@ -59,6 +59,8 @@ spec:
   targetNamespace: gpu-operator
   createNamespace: true
   valuesContent: |-
+    driver:
+      enabled: false
     toolkit:
       env:
       - name: CONTAINERD_SOCKET
@@ -84,6 +86,8 @@ deploy_nvidia_gpu_operator() {
   echo
 
   echo "
+driver:
+  enabled: false
 toolkit:
   env:
   - name: CONTAINERD_SOCKET
@@ -107,8 +111,8 @@ toolkit:
   helm repo update
   echo
 
-  echo "COMMAND: helm install gpu-operator -n gpu-operator --create-namespace --set driver.enabled=false -f nvidia-gpu-operator-values.yaml nvidia/gpu-operator"
-  helm install gpu-operator -n gpu-operator --create-namespace --set driver.enabled=false -f nvidia-gpu-operator-values.yaml nvidia/gpu-operator
+  echo "COMMAND: helm install gpu-operator -n gpu-operator --create-namespace  -f nvidia-gpu-operator-values.yaml nvidia/gpu-operator"
+  helm install gpu-operator -n gpu-operator --create-namespace -f nvidia-gpu-operator-values.yaml nvidia/gpu-operator
   echo
 }
 
