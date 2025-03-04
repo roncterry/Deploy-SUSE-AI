@@ -1,7 +1,7 @@
 #!/bin/bash
 
 K8S_DISTRO="rke2"
-NODE_TYPE="server"
+NODE_TYPE="agent"
 
 if [ -d /opt/${K8S_DISTRO}/bin ]
 then
