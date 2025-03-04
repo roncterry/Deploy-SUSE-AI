@@ -161,9 +161,9 @@ add_milvus_to_custom_overrides_file() {
   echo "- name: VECTOR_DB
   value: \"milvus\"
 - name: MILVUS_URI
-  value:  \"http://milvus.${SUSE_AI_NAMESPACE}.svc.cluster.local:19530\"" >> owui_custom_overrides.yaml
-#- name: RAG_EMBEDDING_MODEL
-#  value: \"sentence-transformers/all-MiniLM-L6-v2\"
+  value:  \"http://milvus.${SUSE_AI_NAMESPACE}.svc.cluster.local:19530\"
+- name: RAG_EMBEDDING_MODEL
+  value: \"sentence-transformers/all-MiniLM-L6-v2\"" >> owui_custom_overrides.yaml
 #- name: INSTALL_NLTK_DATASETS
 #  value: \"true\"" >> owui_custom_overrides.yaml
 }
@@ -219,7 +219,6 @@ case ${1} in
     create_owui_base_custom_overrides_file
     add_ollama_config_to_custom_overrides_file
     add_nvidia_gpu_to_custom_overrides_file
-    add_extra_envvars_to_custom_overrides_file
     install_open_webui
   ;;
   with_gpu_and_milvus)
