@@ -22,7 +22,7 @@ Note: SLES (or SL Micro?) must be installed on the cluster nodes for these clust
 
 1) Deploy the Rancher Manager Cluster
 
-   a) View/edit the common rancher deployment config file (`deploy_rancher.cfg`) and make any changes needed such as the number of replicas counts (for single node clusters leave all of the replica counts at `1`)
+   a) View/edit the common Rancher deployment config file (`deploy_rancher.cfg`) and make any changes needed such as the number of replicas counts (for single node clusters leave all of the replica counts at `1`)
 
    b) On the first Rancher Manager cluster node, the one that will be the (1st) control plan node, run the script (***Note:** This script requires root privileges*): `01-install_first_rke2_server-rancher_cluster.sh` 
 
@@ -32,7 +32,7 @@ Note: SLES (or SL Micro?) must be installed on the cluster nodes for these clust
   
 3) Deploy the SUSE Observability Cluster
 
-   a) View/edit the common observability deployment config file (`deploy_suse_observability.cfg`) and make any changes needed such as the number of replicas counts (for single node clusters leave all of the replica counts at `1`)
+   a) View/edit the common Observability deployment config file (`deploy_suse_observability.cfg`) and make any changes needed such as the number of replicas counts (for single node clusters leave all of the replica counts at `1`)
 
    b) Edit the `authentication_and_licenses.cfg` file to add your Observability license key. (Note: you can also add your SUSE Application Collection service account or access toke info at the same time)
    
