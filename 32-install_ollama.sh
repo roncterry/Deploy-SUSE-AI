@@ -203,18 +203,23 @@ with_ingress() {
 }
 
 install_ollama() {
+  if ! [ -z ${OLLAMA_VERSION} ]
+  then
+    local OLLAMA_VER_ARG="--version ${OLLAMA_VERSION}"
+  fi
+
   cat ollama_custom_overrides.yaml
   echo
   echo "COMMAND:
   helm install ollama \
     -n ${SUSE_AI_NAMESPACE} --create-namespace \
     -f ollama_custom_overrides.yam \
-    oci://dp.apps.rancher.io/charts/ollama"
+    oci://dp.apps.rancher.io/charts/ollama ${OLLAMA_VER_ARG}"
 
   helm install ollama \
     -n ${SUSE_AI_NAMESPACE} --create-namespace \
     -f ollama_custom_overrides.yaml \
-    oci://dp.apps.rancher.io/charts/ollama
+    oci://dp.apps.rancher.io/charts/ollama ${OLLAMA_VER_ARG}
 
   echo
   echo "COMMAND: kubectl -n ${SUSE_AI_NAMESPACE} rollout status deploy/ollama"
@@ -227,7 +232,6 @@ install_ollama() {
 
 case ${1} in
   custom_overrides_only)
-    log_into_app_collection
     create_ollama_custom_overrides_file
     with_nvidia_gpu
     with_ingress

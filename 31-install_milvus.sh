@@ -151,15 +151,20 @@ kafka:
 }
 
 deploy_milvus() {
+  if ! [ -z ${MILVUS_VERSION} ]
+  then
+    local MILVUS_VER_ARG="--version ${MILVUS_VERSION}"
+  fi
+
   echo "COMMAND: helm upgrade --install milvus \
     -n ${SUSE_AI_NAMESPACE} --create-namespace \
     -f milvus_custom_overrides.yaml \
-    oci://dp.apps.rancher.io/charts/milvus"
+    oci://dp.apps.rancher.io/charts/milvus ${MILVUS_VER_ARG}"
 
   helm upgrade --install milvus \
     -n ${SUSE_AI_NAMESPACE} --create-namespace \
     -f milvus_custom_overrides.yaml \
-    oci://dp.apps.rancher.io/charts/milvus
+    oci://dp.apps.rancher.io/charts/milvus ${MILVUS_VER_ARG}
 
   case ${MILVUS_CLUSTER_ENABLED} in
     false|False|FALSE)
@@ -177,7 +182,17 @@ deploy_milvus() {
 
 ##############################################################################
 
-log_into_app_collection
-create_milvus_custom_overrides_file
-deploy_milvus
+case ${1} in
+  custom_overrides_only)
+    create_milvus_custom_overrides_file
+    echo
+    cat milvus_custom_overrides.yaml
+    echo
+  ;;
+  *)
+    log_into_app_collection
+    create_milvus_custom_overrides_file
+    deploy_milvus
+  ;;
+esac
 

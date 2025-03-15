@@ -42,7 +42,7 @@ else
   IMAGE_PULL_SECRET_NAME=application-collection
   STORAGE_CLASS_NAME=longhorn
 
-  OWUI_OLLAMA_ENABLED=True
+  OWUI_OLLAMA_ENABLED=true
   WEBUI_INGRESS_HOST=webui.example.com
   OLLAMA_MODEL_0=llama3.2
   OLLAMA_MODEL_1=gemma:2b
@@ -99,31 +99,32 @@ add_ollama_config_to_custom_overrides_file() {
     True|true|TRUE)
       echo "  defaultModel: ${OLLAMA_MODEL_0}
   ollama:
-    models:" >> owui_custom_overrides.yaml
+    models:
+      pull:" >> owui_custom_overrides.yaml
 
       if ! [ -z ${OLLAMA_MODEL_0} ]
       then
-        echo "    - \"${OLLAMA_MODEL_0}\" " >> owui_custom_overrides.yaml
+        echo "      - \"${OLLAMA_MODEL_0}\" " >> owui_custom_overrides.yaml
       fi
   
       if ! [ -z ${OLLAMA_MODEL_1} ]
       then
-        echo "    - \"${OLLAMA_MODEL_1}\" " >> owui_custom_overrides.yaml
+        echo "      - \"${OLLAMA_MODEL_1}\" " >> owui_custom_overrides.yaml
       fi
   
       if ! [ -z ${OLLAMA_MODEL_2} ]
       then
-        echo "    - \"${OLLAMA_MODEL_2}\" " >> owui_custom_overrides.yaml
+        echo "      - \"${OLLAMA_MODEL_2}\" " >> owui_custom_overrides.yaml
       fi
   
       if ! [ -z ${OLLAMA_MODEL_3} ]
       then
-        echo "    - \"${OLLAMA_MODEL_3}\" " >> owui_custom_overrides.yaml
+        echo "      - \"${OLLAMA_MODEL_3}\" " >> owui_custom_overrides.yaml
       fi
   
       if ! [ -z ${OLLAMA_MODEL_4} ]
       then
-        echo "    - \"${OLLAMA_MODEL_4}\" " >> owui_custom_overrides.yaml
+        echo "      - \"${OLLAMA_MODEL_4}\" " >> owui_custom_overrides.yaml
       fi
     ;;
     False|false|FALSE)
@@ -169,18 +170,23 @@ add_milvus_to_custom_overrides_file() {
 }
 
 install_open_webui() {
+  if ! [ -z ${OWUI_VERSION} ]
+  then
+    local OWUI_VER_ARG="--version ${OWUI_VERSION}"
+  fi
+
   cat owui_custom_overrides.yaml
   echo
   echo "COMMAND:
   helm install open-webui \
     -n ${SUSE_AI_NAMESPACE} --create-namespace \
     -f owui_custom_overrides.yaml \
-    oci://dp.apps.rancher.io/charts/open-webui"
+    oci://dp.apps.rancher.io/charts/open-webui ${OWUI_VER_ARG}"
 
   helm install open-webui \
     -n ${SUSE_AI_NAMESPACE} --create-namespace \
     -f owui_custom_overrides.yaml \
-    oci://dp.apps.rancher.io/charts/open-webui
+    oci://dp.apps.rancher.io/charts/open-webui ${OWUI_VER_ARG}
 
   case ${OWUI_OLLAMA_ENABLED} in
     true|True|TRUE)
@@ -198,12 +204,14 @@ install_open_webui() {
 
 case ${1} in
   custom_overrides_only)
-    log_into_app_collection
     create_owui_base_custom_overrides_file
     add_ollama_config_to_custom_overrides_file
     add_nvidia_gpu_to_custom_overrides_file
     add_extra_envvars_to_custom_overrides_file
     add_milvus_to_custom_overrides_file
+    echo
+    cat owui_custom_overrides.yaml
+    echo
   ;;
   without_gpu)
     install_certmanager_crds
