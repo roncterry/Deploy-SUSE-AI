@@ -64,11 +64,11 @@ Note: SLES (or SL Micro?) must be installed on the cluster nodes for these clust
    
    a) On the first SUSE Observability cluster node run the script: `05-install_observability.sh`
    
-   b) Retrieve the admin password from the last line of the `suse-observability-values/templates/baseConfig_values.yaml` file
+   b) Retrieve the admin password from the last line of the `suse-observability-values/templates/baseConfig_values.yaml` file (unless you specified it in the `deploy_suse_observability.cfg` file, in which case you should already know it)
    
    c) In a web browser go to the SUSE Observability web UI and log in as the "admin" user with the password retrieved from the file in the previous step
 
-   d) Follow the steps here in the section titled **Accessing SUSE Observability** [here](https://docs.stackstate.com/get-started/k8s-suse-rancher-prime) to integrate SUSE Observability with Rancher Manager
+   d) Follow the steps here in the section titled **Accessing SUSE Observability** [here](https://docs.stackstate.com/get-started/k8s-suse-rancher-prime) to integrate SUSE Observability with Rancher Manager (***Note:** This requires a valid, non self-signed, certificate for the Observability cluster*)
 
 ## Install the SUSE AI Stack
 
