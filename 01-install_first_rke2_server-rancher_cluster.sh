@@ -3,7 +3,7 @@
 # You can either source in the variables from a common config file or
 # set them in this script.
 
-CONFIG_FILE=
+CONFIG_FILE=deploy_rancher.cfg
 
 if ! [ -z ${CONFIG_FILE} ]
 then
