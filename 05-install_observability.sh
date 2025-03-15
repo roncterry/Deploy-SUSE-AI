@@ -2,26 +2,29 @@
 
 ##############################################################################
 
-if ! which kubectl > /dev/null
+if ! echo $* | grep -q force
 then
-  echo
-  echo "ERROR: This must be run on a machine with the kubectl and helm commands installed."
-  echo "       Run this script on a control plane node or management machine."
-  echo
-  echo "       Exiting."
-  echo
-  exit
-fi
+ if ! which kubectl > /dev/null
+ then
+   echo
+   echo "ERROR: This must be run on a machine with the kubectl and helm commands installed."
+   echo "       Run this script on a control plane node or management machine."
+   echo
+   echo "       Exiting."
+   echo
+   exit
+ fi
 
-if ! which helm > /dev/null
-then
-  echo
-  echo "ERROR: This must be run on a machine with the kubectl and helm commands installed."
-  echo "       Run this script on a control plane node or management machine."
-  echo
-  echo "       Exiting."
-  echo
-  exit
+ if ! which helm > /dev/null
+ then
+   echo
+   echo "ERROR: This must be run on a machine with the kubectl and helm commands installed."
+   echo "       Run this script on a control plane node or management machine."
+   echo
+   echo "       Exiting."
+   echo
+   exit
+ fi
 fi
 
 ##############################################################################
@@ -51,7 +54,36 @@ LICENSES_FILE=authentication_and_licenses.cfg
 # config file that is sourced in here:
 source ${LICENSES_FILE}
 
+source /etc/os-release
+
 ##############################################################################
+
+case $(whoami) in
+  root)
+    SUDO_CMD=""
+  ;;
+  *)
+    SUDO_CMD="sudo"
+  ;;
+esac
+
+##############################################################################
+#   Functions
+##############################################################################
+
+install_apache2utils() {
+  case ${NAME} in
+    SLES)
+      if ! zypper se apache2-utils | grep -q ^i
+      then
+        echo "Installing apache2-utils (for htpasswd)..."
+        echo "COMMAND: ${SUDO_CMD} zypper install -y --auto-agree-with-licenses apache2-utils"
+        ${SUDO_CMD} zypper install -y --auto-agree-with-licenses apache2-utils
+        echo
+      fi
+    ;;
+  esac
+}
 
 create_observability_templates() {
   echo
@@ -64,9 +96,16 @@ create_observability_templates() {
   echo "COMMAND: helm template --set license=\"${OBSERVABILITY_LICENSE_KEY}\" --set baseUrl=\"${OBSERVABILITY_BASEURL}\" --set sizing.profile=\"${OBSERVABILITY_SIZING_PROFILE}\" suse-observability-values suse-observability/suse-observability-values --output-dir ${OBSERVABILITY_VALUES_DIR}"
   helm template --set license="${OBSERVABILITY_LICENSE_KEY}" --set baseUrl="${OBSERVABILITY_BASEURL}" --set sizing.profile="${OBSERVABILITY_SIZING_PROFILE}" suse-observability-values suse-observability/suse-observability-values --output-dir ${OBSERVABILITY_VALUES_DIR}
 
-  echo "Writing out ingress manifest ..."
-  echo
-  echo "
+  export OBSERVABILITY_BASECONFIG_VALUES_ARG="--values ${OBSERVABILITY_VALUES_DIR}/suse-observability-values/templates/baseConfig_values.yaml"
+  export OBSERVABILITY_SIZING_VALUES_ARG="--values ${OBSERVABILITY_VALUES_DIR}/suse-observability-values/templates/sizing_values.yaml"
+}
+
+write_out_observability_ingress_values_file() {
+  if ! [ -z "${OBSERVABILITY_HOST}" ]
+  then
+    echo "Writing out ingress values ..."
+    echo
+    echo "
 ingress:
   annotations: 
     nginx.ingress.kubernetes.io/proxy-body-size: '50m'
@@ -77,14 +116,78 @@ ingress:
   hosts: 
     - host: ${OBSERVABILITY_HOST}
 " > ${OBSERVABILITY_VALUES_DIR}/suse-observability-values/templates/ingress_values.yaml
-  cat ${OBSERVABILITY_VALUES_DIR}/suse-observability-values/templates/ingress_values.yaml
-  echo
+    cat ${OBSERVABILITY_VALUES_DIR}/suse-observability-values/templates/ingress_values.yaml
+    echo 
+
+    OBSERVABILITY_INGRESS_VALUES_ARG="--values ${OBSERVABILITY_VALUES_DIR}/suse-observability-values/templates/ingress_values.yaml"
+  fi
+}
+
+hash_observability_admin_user_password() {
+  if ! [ -z "${OBSERVABILITY_ADMIN_PASSWORD}" ]
+  then
+    echo "Hashing admin password ..."
+    echo
+    export OBSERVABILITY_ADMIN_PASSWORD_HASH=$(htpasswd -bnBC 10 "" ${OBSERVABILITY_ADMIN_PASSWORD} | tr -d ':\n')
+
+    sed -i "s/^    adminPassword:.*/    adminPassword: \"${OBSERVABILITY_ADMIN_PASSWORD_HASH}\"/g" ${OBSERVABILITY_VALUES_DIR}/suse-observability-values/templates/baseConfig_values.yaml
+    sed -i "s/^# Your SUSE Observability admin password is:.*/# Your SUSE Observability admin password is: ${OBSERVABILITY_ADMIN_PASSWORD}\"/g" ${OBSERVABILITY_VALUES_DIR}/suse-observability-values/templates/baseConfig_values.yaml
+    echo
+    echo "Observability admin username: ${OBSERVABILITY_ADMIN_USERNAME}"
+    echo "Observability admin password: ${OBSERVABILITY_ADMIN_PASSWORD}"
+    echo
+  else
+    echo "(Using auto-generated admin password)"
+    echo
+  fi
+}
+
+write_out_observability_auth_values_file() {
+  if ! [ -z "${OBSERVABILITY_USERS_LIST}" ]
+  then
+    echo "Writing out authentication values ..."
+    echo
+    echo "
+stackstate:
+  authentication:
+    file:
+      logins:" > ${OBSERVABILITY_VALUES_DIR}/suse-observability-values/templates/authentication_values.yaml
+
+    if ! [ -z ${OBSERVABILITY_ADMIN_USERNAME} ]
+    then
+      OBSERVABILITY_ADMIN_USERNAME=admin
+    fi
+
+    #if [ -z ${OBSERVABILITY_ADMIN_PASSWORD} ]
+    #then
+    #fi
+
+    echo "        - username: ${OBSERVABILITY_ADMIN_USERNAME}
+          passwordHash: ${OBSERVABILITY_ADMIN_PASSWORD_HASH}
+          roles: [ stackstate-admin ]" >> ${OBSERVABILITY_VALUES_DIR}/suse-observability-values/templates/authentication_values.yaml
+
+    for OBSERVABILITY_USER in ${OBSERVABILITY_USERS_LIST}
+    do
+      local OBSV_USER_NAME=$(echo ${OBSERVABILITY_USER}|cut -d : -f 1)
+      local OBSV_USER_PASSWD=$(echo ${OBSERVABILITY_USER}|cut -d : -f 2)
+      local OBSV_USER_PASSWD_HASH=$(htpasswd -bnBC 10 "" ${OBSV_USER_PASSWD} | tr -d ':\n')
+      local OBSV_USER_ROLE=$(echo ${OBSERVABILITY_USER}|cut -d : -f 3)
+      echo "        - username: ${OBSV_USER_NAME}
+          passwordHash: ${OBSV_USER_PASSWD_HASH}
+          roles: [ ${OBSV_USER_ROLE} ]" >> ${OBSERVABILITY_VALUES_DIR}/suse-observability-values/templates/authentication_values.yaml
+    done
+
+    cat ${OBSERVABILITY_VALUES_DIR}/suse-observability-values/templates/authentication_values.yaml
+    echo 
+    export OBSERVABILITY_AUTH_VALUES_ARG="--values ${OBSERVABILITY_VALUES_DIR}/suse-observability-values/templates/authentication_values.yaml"
+    echo
+  fi
 }
 
 install_observability() {
   echo
-  echo "COMMAND: helm upgrade --install --namespace ${OBSERVABILITY_NAMESPACE} --create-namespace --values ${OBSERVABILITY_VALUES_DIR}/suse-observability-values/templates/baseConfig_values.yaml --values ${OBSERVABILITY_VALUES_DIR}/suse-observability-values/templates/sizing_values.yaml --values ${OBSERVABILITY_VALUES_DIR}/suse-observability-values/templates/ingress_values.yaml suse-observability suse-observability/suse-observability"
-  helm upgrade --install --namespace ${OBSERVABILITY_NAMESPACE} --create-namespace --values ${OBSERVABILITY_VALUES_DIR}/suse-observability-values/templates/baseConfig_values.yaml --values ${OBSERVABILITY_VALUES_DIR}/suse-observability-values/templates/sizing_values.yaml --values ${OBSERVABILITY_VALUES_DIR}/suse-observability-values/templates/ingress_values.yaml suse-observability suse-observability/suse-observability
+  echo "COMMAND: helm upgrade --install --namespace ${OBSERVABILITY_NAMESPACE} --create-namespace ${OBSERVABILITY_BASECONFIG_VALUES_ARG} ${OBSERVABILITY_SIZING_VALUES_ARG} ${OBSERVABILITY_INGRESS_VALUES_ARG} ${OBSERVABILITY_AUTH_VALUES_ARG} suse-observability suse-observability/suse-observability"
+  helm upgrade --install --namespace ${OBSERVABILITY_NAMESPACE} --create-namespace ${OBSERVABILITY_BASECONFIG_VALUES_ARG} ${OBSERVABILITY_SIZING_VALUES_ARG} ${OBSERVABILITY_INGRESS_VALUES_ARG} ${OBSERVABILITY_AUTH_VALUES_ARG} suse-observability suse-observability/suse-observability
 
   echo
   sleep 5
@@ -119,9 +222,14 @@ install_observability() {
 
 ##############################################################################
 
+install_apache2utils
+
 case ${1} in
   templates_only)
     create_observability_templates
+    write_out_observability_ingress_values_file
+    hash_observability_admin_user_password
+    write_out_observability_auth_values_file
   ;;
   install_only)
     install_observability
@@ -134,6 +242,9 @@ case ${1} in
   ;;
   *)
     create_observability_templates
+    write_out_observability_ingress_values_file
+    hash_observability_admin_user_password
+    write_out_observability_auth_values_file
     install_observability
   ;;
 esac
