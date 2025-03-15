@@ -22,7 +22,9 @@ Note: SLES (or SL Micro?) must be installed on the cluster nodes for these clust
 
 1) Deploy the Rancher Manager Cluster
 
-   a) On the first Rancher Manager cluster node, the one that will be the (1st) control plan node, run the script (***Note:** This script requires root privileges*): `01-install_first_rke2_server-rancher_cluster.sh` 
+   a) View/edit the common rancher deployment config file (`deploy_rancher.cfg`) and make any changes needed such as the number of replicas counts (for single node clusters leave all of the replica counts at `1`)
+
+   b) On the first Rancher Manager cluster node, the one that will be the (1st) control plan node, run the script (***Note:** This script requires root privileges*): `01-install_first_rke2_server-rancher_cluster.sh` 
 
 2) Deploy Rancher Manager onto the Rancher Manager Cluster
 
