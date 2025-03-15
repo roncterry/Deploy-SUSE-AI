@@ -29,6 +29,19 @@ fi
 
 source /etc/os-release
 
+##############################################################################
+
+case $(whoami) in
+  root)
+    SUDO_CMD=""
+  ;;
+  *)
+    SUDO_CMD="sudo"
+  ;;
+esac
+
+###############################################################################
+#   Functions
 ###############################################################################
 
 install_openiscsi() {
@@ -37,8 +50,8 @@ install_openiscsi() {
       if ! zypper se open-iscsi | grep -q ^i
       then
         echo "Installing open-iscsi ..."
-        echo "COMMAND: zypper install -y --auto-agree-with-licenses open-iscsi"
-        zypper install -y --auto-agree-with-licenses open-iscsi
+        echo "COMMAND: ${SUDO_CMD} zypper install -y --auto-agree-with-licenses open-iscsi"
+        ${SUDO_CMD} zypper install -y --auto-agree-with-licenses open-iscsi
         echo
       fi
     ;;
