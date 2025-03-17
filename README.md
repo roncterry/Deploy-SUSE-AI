@@ -24,7 +24,11 @@ Note: SLES (or SL Micro?) must be installed on the cluster nodes for these clust
 
    a) View/edit the common Rancher deployment config file (`deploy_rancher.cfg`) and make any changes needed such as the number of replicas counts (for single node clusters leave all of the replica counts at `1`)
 
-   b) On the first Rancher Manager cluster node, the one that will be the (1st) control plan node, run the script (***Note:** This script requires root privileges*): `01-install_first_rke2_server-rancher_cluster.sh` 
+   b) On the first Rancher Manager cluster node, the one that will be the (1st) control plan node, run the script (***Note:** This script requires root privileges*): `01a-install_first_rke2_server-rancher_cluster.sh` 
+
+   c) If you want an HA cluster, on the other Rancher Manager cluster control plane nodes, run the script (***Note:** This script requires root privileges*): `01b-install_additional_rke2_server-rancher_cluster` 
+
+   d) If you want worker nodes in the Rancher Manager cluster, on the cluster nodes that will be worker nodes, run the script (***Note:** This script requires root privileges.*): `01c-install_rke2_agent-rancher_cluster`
 
 2) Deploy Rancher Manager onto the Rancher Manager Cluster
 
@@ -34,10 +38,14 @@ Note: SLES (or SL Micro?) must be installed on the cluster nodes for these clust
 
    a) View/edit the common Observability deployment config file (`deploy_suse_observability.cfg`) and make any changes needed such as the number of replicas counts (for single node clusters leave all of the replica counts at `1`)
 
-   b) Edit the `authentication_and_licenses.cfg` file to add your Observability license key. (Note: you can also add your SUSE Application Collection service account or access toke info at the same time)
+   b) Edit the `authentication_and_licenses.cfg` file to add your Observability license key. (***Note:** you can also add your SUSE Application Collection service account or access token info at the same time*)
    
-   c) On the first SUSE Observability cluster node, the one that will be the (1st) control plan node, run the script (***Note:** This script requires root privileges.*): `03-install_first_rke2_server-observability_cluster.sh`
-   
+   c) On the first SUSE Observability cluster node, the one that will be the (1st) control plan node, run the script (***Note:** This script requires root privileges.*): `03a-install_first_rke2_server-observability_cluster.sh`
+
+   d) If you want an HA cluster, on the other Observability cluster control plane nodes, run the script (***Note:** This script requires root privileges*): `03b-install_additional_rke2_server-observability_cluster.sh` 
+
+   e) If you want worker nodes in the Observability cluster, on the cluster nodes that will be worker nodes, run the script (***Note:** This script requires root privileges.*): `03c-install_rke2_agent-observability_cluster.sh`
+
 5) Import the Downstream SUSE Observability Cluster into Rancher Manager
    
    a) Log into the Rancher Manager Web UI as an admin user
@@ -136,7 +144,7 @@ Do the following to deploy the SUSE AI stack:
 
 At this point the base set of applications is installed on the downstream AI cluster. You can now use the following scripts to deploy the AI stack applications. These scripts can be run on your management machine or any of the downstream AI cluster nodes that have the `kubectl` and `helm` commands installed.
 
-|   Script   | Description |
+|   Script    | Description |
 |-------------|-------------|
 |`31-install_milvus.sh` | This installs Milvus on the AI cluster. Do this if you want to use the Milvus vector database in conjunction with Open WebUI. (*Note: The script `91-clean_up_milvus_PVCs.sh` can be used if you uninstall the Milvus deployment using Helm and want to remove the volumes that were created - they don't get removed automatically when uninstalling the deployment.*) |
 |`32-install_ollama.sh` | This installs only Ollama. Do this if you want to deploy the AI stack in a more modular fashion or are not going to use Open WebUI. You must supply one of the following arguments to the script: `without_gpu` (installs Ollama without GPU support - you probably don't want this), `with_gpu`  (Installs Ollama with GPU support), `with_gpu_and_ingress`  (Installs Ollama with GPU support and configures an ingress allowing direct communication with Ollama) |
@@ -157,3 +165,13 @@ Some additional scripts are provided to help clean up after certain applications
 |    Script    | Description |
 |--------------|-------------|
 |`91-clean_up_milvus_PVCs.sh`| Removes the PVCs and therefore the PV that were created by the Milvus Helm chart install but were not removed by the uninstall.|
+
+## Quick Deploy Scripts
+
+There are some `quick_deploy` script available that enabled you to deploy full cluster stacks with a single command. These `quick_deploy` scripts run the corresponding installation scripts in the correct order to get the desired stack. You must first edit the common configuration files for the type of cluster stack you are quick deploying (i.e. `deploy_rancher.cfg`, `deploy_suse_observability.cfg`, `deploy_sus_ai.cfg`) before running the `quick_deploy` script.
+
+|    Script    | Description |
+|--------------|-------------|
+|`quick_deploy-rancher.sh`      | This script deploys a one node Rancher Manager cluster. You must supply the FQDN of the Rancher Manager cluster as an argument. E*xample:* `quick_deploy-rancher.sh rancher.example.com` |
+|`quick_deploy-observability.sh`| This script deploys a on node SUSE Observability cluster. You must supply the FQDN of the SUSE Observability cluster as an argument. *Example:* `quick_deploy-observability.sh observability.example.com`|
+|`quick_deploy-open_webui.sh`   | This script deploys a one node SUSE AI cluster with Milvus, Ollama and Open WebUI. You must supply the FQDN of the SUSE AI cluster as an argument. *Example:* `quick_deploy-open_webui.sh aicluster01.example.com`|
