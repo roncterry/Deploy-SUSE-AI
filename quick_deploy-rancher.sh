@@ -65,8 +65,8 @@ echo
 echo "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
 echo
 
-echo "[02-install_rancher_with_helm.sh]" 
-bash 02-install_rancher_with_helm.sh 
+echo "[02-deploy_rancher_with_helm.sh]" 
+bash 02-deploy_rancher_with_helm.sh 
 echo
 echo "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
 echo
