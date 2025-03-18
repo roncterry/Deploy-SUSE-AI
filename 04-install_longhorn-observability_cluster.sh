@@ -44,10 +44,55 @@ esac
 #   Functions
 ###############################################################################
 
+test_user() {
+  if whoami | grep -q root
+  then
+    echo
+    echo "ERROR: You must run this script as a non-root user. Exiting."
+    echo
+    exit 1
+  fi
+}
+
+check_for_kubectl() {
+  if ! echo $* | grep -q force
+  then
+   if ! which kubectl > /dev/null
+   then
+     echo
+     echo "ERROR: This must be run on a machine with the kubectl command installed."
+     echo "       Run this script on a control plane node or management machine."
+     echo
+     echo "       Exiting."
+     echo
+     exit
+   fi
+  fi
+}
+
+check_for_helm() {
+  if ! echo $* | grep -q force
+  then
+   if ! which helm > /dev/null
+   then
+     echo
+     echo "ERROR: This must be run on a machine with the helm command installed."
+     echo "       Run this script on a control plane node or management machine."
+     echo
+     echo "       Exiting."
+     echo
+     exit
+   fi
+  fi
+}
+
+##############################################################################
+
+
 install_openiscsi() {
   case ${NAME} in
     SLES)
-      if ! zypper se open-iscsi | grep -q ^i
+      if ! zypper se open-iscsi | grep open-iscsi | grep -q ^i
       then
         echo "Installing open-iscsi ..."
         echo "COMMAND: ${SUDO_CMD} zypper install -y --auto-agree-with-licenses open-iscsi"
@@ -136,15 +181,19 @@ csi:
   echo
 
   echo "-----------------------------------------------------------------------------"
+  echo
   echo "COMMAND: kubectl get storageclasses"
   kubectl get storageclasses
   echo
 
   echo "-----------------------------------------------------------------------------"
+  echo
   echo "COMMAND: kubectl describe storageclasses longhorn"
   kubectl describe storageclasses longhorn
   echo 
 
+  echo "-----------------------------------------------------------------------------"
+  echo
 }
 
 create_longhorn_ingress() {
@@ -205,23 +254,8 @@ spec:
 
 install_openiscsi
 
-if ! which kubectl > /dev/null
-then
-  echo
-  echo "ERROR: The rest of this script requires the helm and kubectl commands."
-  echo "       Run this again on a control plane node or management machine."
-  echo
-  exit
-fi
-
-if ! which helm > /dev/null
-then
-  echo
-  echo "ERROR: The rest of this script requires the helm and kubectl commands."
-  echo "       Run this again on a control plane node or management machine."
-  echo
-  exit
-fi
+check_for_kubectl
+check_for_helm
 
 deploy_longhorn
 

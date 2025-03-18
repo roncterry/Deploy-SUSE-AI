@@ -2,30 +2,6 @@
 
 ##############################################################################
 
-if ! which kubectl > /dev/null
-then
-  echo
-  echo "ERROR: This must be run on a machine with the kubectl and helm commands installed."
-  echo "       Run this script on a control plane node or management machine."
-  echo
-  echo "       Exiting."
-  echo
-  exit
-fi
-
-if ! which helm > /dev/null
-then
-  echo
-  echo "ERROR: This must be run on a machine with the kubectl and helm commands installed."
-  echo "       Run this script on a control plane node or management machine."
-  echo
-  echo "       Exiting."
-  echo
-  exit
-fi
-
-##############################################################################
-
 # You can either source in the variables from a common config file or
 # set the them in this script.
 
@@ -77,6 +53,42 @@ fi
 
 LICENSES_FILE=authentication_and_licenses.cfg
 
+CUSTOM_OVERRIDES_FILE=milvus_custom_overrides.yaml
+
+##############################################################################
+
+check_for_kubectl() {
+  if ! echo $* | grep -q force
+  then
+   if ! which kubectl > /dev/null
+   then
+     echo
+     echo "ERROR: This must be run on a machine with the kubectl command installed."
+     echo "       Run this script on a control plane node or management machine."
+     echo
+     echo "       Exiting."
+     echo
+     exit
+   fi
+  fi
+}
+
+check_for_helm() {
+  if ! echo $* | grep -q force
+  then
+   if ! which helm > /dev/null
+   then
+     echo
+     echo "ERROR: This must be run on a machine with the helm command installed."
+     echo "       Run this script on a control plane node or management machine."
+     echo
+     echo "       Exiting."
+     echo
+     exit
+   fi
+  fi
+}
+
 ##############################################################################
 
 log_into_app_collection() {
@@ -94,7 +106,7 @@ log_into_app_collection() {
 }
 
 create_milvus_custom_overrides_file() {
-  echo "Writing out milvus_custom_verrrides.yaml file ..."
+  echo "Writing out ${CUSTOM_OVERRIDES_FILE} file ..."
   echo
   echo "
 global:
@@ -144,9 +156,15 @@ kafka:
       requests:
         storage: ${KAFKA_VOLUME_SIZE}
     storageClassName: ${STORAGE_CLASS_NAME}
-" > milvus_custom_overrides.yaml
+" > ${CUSTOM_OVERRIDES_FILE}
   echo
-  cat milvus_custom_overrides.yaml
+  cat ${CUSTOM_OVERRIDES_FILE}
+  echo
+}
+
+display_custom_overrides_file() {
+  echo
+  cat ${CUSTOM_OVERRIDES_FILE}
   echo
 }
 
@@ -158,12 +176,12 @@ deploy_milvus() {
 
   echo "COMMAND: helm upgrade --install milvus \
     -n ${SUSE_AI_NAMESPACE} --create-namespace \
-    -f milvus_custom_overrides.yaml \
+    -f ${CUSTOM_OVERRIDES_FILE} \
     oci://dp.apps.rancher.io/charts/milvus ${MILVUS_VER_ARG}"
 
   helm upgrade --install milvus \
     -n ${SUSE_AI_NAMESPACE} --create-namespace \
-    -f milvus_custom_overrides.yaml \
+    -f ${CUSTOM_OVERRIDES_FILE} \
     oci://dp.apps.rancher.io/charts/milvus ${MILVUS_VER_ARG}
 
   case ${MILVUS_CLUSTER_ENABLED} in
@@ -185,13 +203,14 @@ deploy_milvus() {
 case ${1} in
   custom_overrides_only)
     create_milvus_custom_overrides_file
-    echo
-    cat milvus_custom_overrides.yaml
-    echo
+    display_custom_overrides_file
   ;;
   *)
+    check_for_kubectl
+    check_for_helm
     log_into_app_collection
     create_milvus_custom_overrides_file
+    display_custom_overrides_file
     deploy_milvus
   ;;
 esac

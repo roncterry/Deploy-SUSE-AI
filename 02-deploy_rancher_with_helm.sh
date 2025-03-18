@@ -2,33 +2,6 @@
 
 ##############################################################################
 
-if ! echo $* | grep -q force
-then
- if ! which kubectl > /dev/null
- then
-   echo
-   echo "ERROR: This must be run on a machine with the kubectl and helm commands installed."
-   echo "       Run this script on a control plane node or management machine."
-   echo
-   echo "       Exiting."
-   echo
-   exit
- fi
-
- if ! which helm > /dev/null
- then
-   echo
-   echo "ERROR: This must be run on a machine with the kubectl and helm commands installed."
-   echo "       Run this script on a control plane node or management machine."
-   echo
-   echo "       Exiting."
-   echo
-   exit
- fi
-fi
-
-##############################################################################
-
 source /etc/os-release
 
 # You can either source in the variables from a common config file or
@@ -76,6 +49,40 @@ test_user() {
     exit 1
   fi
 }
+
+check_for_kubectl() {
+  if ! echo $* | grep -q force
+  then
+   if ! which kubectl > /dev/null
+   then
+     echo
+     echo "ERROR: This must be run on a machine with the kubectl command installed."
+     echo "       Run this script on a control plane node or management machine."
+     echo
+     echo "       Exiting."
+     echo
+     exit
+   fi
+  fi
+}
+
+check_for_helm() {
+  if ! echo $* | grep -q force
+  then
+   if ! which helm > /dev/null
+   then
+     echo
+     echo "ERROR: This must be run on a machine with the helm command installed."
+     echo "       Run this script on a control plane node or management machine."
+     echo
+     echo "       Exiting."
+     echo
+     exit
+   fi
+  fi
+}
+
+##############################################################################
 
 install_certmanager() {
   echo "Installing Cert-Manager ..."

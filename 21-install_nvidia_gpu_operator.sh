@@ -2,30 +2,6 @@
 
 ##############################################################################
 
-if ! which kubectl > /dev/null
-then
-  echo
-  echo "ERROR: This must be run on a machine with the kubectl and helm commands installed."
-  echo "       Run this script on a control plane node or management machine."
-  echo
-  echo "       Exiting."
-  echo
-  exit
-fi
-
-if ! which helm > /dev/null
-then
-  echo
-  echo "ERROR: This must be run on a machine with the kubectl and helm commands installed."
-  echo "       Run this script on a control plane node or management machine."
-  echo
-  echo "       Exiting."
-  echo
-  exit
-fi
-
-##############################################################################
-
 # You can either source in the variables from a common config file or
 # set the them in this script.
 
@@ -40,6 +16,40 @@ then
 else
   NVIDIA_GPU_OPERATOR_REPO_URL=https://helm.ngc.nvidia.com/nvidia
 fi
+
+##############################################################################
+
+check_for_kubectl() {
+  if ! echo $* | grep -q force
+  then
+   if ! which kubectl > /dev/null
+   then
+     echo
+     echo "ERROR: This must be run on a machine with the kubectl command installed."
+     echo "       Run this script on a control plane node or management machine."
+     echo
+     echo "       Exiting."
+     echo
+     exit
+   fi
+  fi
+}
+
+check_for_helm() {
+  if ! echo $* | grep -q force
+  then
+   if ! which helm > /dev/null
+   then
+     echo
+     echo "ERROR: This must be run on a machine with the helm command installed."
+     echo "       Run this script on a control plane node or management machine."
+     echo
+     echo "       Exiting."
+     echo
+     exit
+   fi
+  fi
+}
 
 ##############################################################################
 
@@ -224,6 +234,9 @@ done
 }
 
 ##############################################################################
+
+check_for_kubectl
+check_for_helm
 
 if ! kubectl get pods -A | grep -q nvidia-operator-validator
 then

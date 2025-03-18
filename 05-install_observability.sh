@@ -2,33 +2,6 @@
 
 ##############################################################################
 
-if ! echo $* | grep -q force
-then
- if ! which kubectl > /dev/null
- then
-   echo
-   echo "ERROR: This must be run on a machine with the kubectl and helm commands installed."
-   echo "       Run this script on a control plane node or management machine."
-   echo
-   echo "       Exiting."
-   echo
-   exit
- fi
-
- if ! which helm > /dev/null
- then
-   echo
-   echo "ERROR: This must be run on a machine with the kubectl and helm commands installed."
-   echo "       Run this script on a control plane node or management machine."
-   echo
-   echo "       Exiting."
-   echo
-   exit
- fi
-fi
-
-##############################################################################
-
 # You can either source in the variables from a common config file or
 # set the them in this script.
 
@@ -71,10 +44,52 @@ esac
 #   Functions
 ##############################################################################
 
+check_for_kubectl() {
+  if ! echo $* | grep -q force
+  then
+   if ! which kubectl > /dev/null
+   then
+     echo
+     echo "ERROR: This must be run on a machine with the kubectl command installed."
+     echo "       Run this script on a control plane node or management machine."
+     echo
+     echo "       Exiting."
+     echo
+     exit
+   fi
+  fi
+}
+
+check_for_helm() {
+  if ! echo $* | grep -q force
+  then
+   if ! which helm > /dev/null
+   then
+     echo
+     echo "ERROR: This must be run on a machine with the helm command installed."
+     echo "       Run this script on a control plane node or management machine."
+     echo
+     echo "       Exiting."
+     echo
+     exit
+   fi
+  fi
+}
+
+##############################################################################
+
 install_apache2utils() {
   case ${NAME} in
     SLES)
-      if ! zypper se apache2-utils | grep -q ^i
+      if zypper se apache2-utils | grep -q "No matching items found"
+      then
+        echo
+        echo "ERROR: The appache2-utils package is required to provide the htpasswd utility."
+        echo "       The appache2-utils package does not appear to be installed or available."
+        echo "       Please ensure the sle-module-server-applications product is added and try again."
+        echo
+        exit
+      elif ! zypper se apache2-utils | grep apache2-utils | grep -q ^i
       then
         echo "Installing apache2-utils (for htpasswd)..."
         echo "COMMAND: ${SUDO_CMD} zypper install -y --auto-agree-with-licenses apache2-utils"
@@ -226,12 +241,16 @@ install_apache2utils
 
 case ${1} in
   templates_only)
+    check_for_kubectl
+    check_for_helm
     create_observability_templates
     write_out_observability_ingress_values_file
     hash_observability_admin_user_password
     write_out_observability_auth_values_file
   ;;
   install_only)
+    check_for_kubectl
+    check_for_helm
     install_observability
   ;;
   help|-h|--help)
@@ -241,6 +260,8 @@ case ${1} in
     exit
   ;;
   *)
+    check_for_kubectl
+    check_for_helm
     create_observability_templates
     write_out_observability_ingress_values_file
     hash_observability_admin_user_password

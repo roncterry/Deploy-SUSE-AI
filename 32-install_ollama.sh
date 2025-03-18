@@ -2,30 +2,6 @@
 
 ##############################################################################
 
-if ! which kubectl > /dev/null
-then
-  echo
-  echo "ERROR: This must be run on a machine with the kubectl and helm commands installed."
-  echo "       Run this script on a control plane node or management machine."
-  echo
-  echo "       Exiting."
-  echo
-  exit
-fi
-
-if ! which helm > /dev/null
-then
-  echo
-  echo "ERROR: This must be run on a machine with the kubectl and helm commands installed."
-  echo "       Run this script on a control plane node or management machine."
-  echo
-  echo "       Exiting."
-  echo
-  exit
-fi
-
-##############################################################################
-
 # You can either source in the variables from a common config file or
 # set the them in this script.
 
@@ -53,6 +29,42 @@ fi
 
 LICENSES_FILE=authentication_and_licenses.cfg
 
+CUSTOM_OVERRIDES_FILE=ollama_custom_overrides.yaml
+
+##############################################################################
+
+check_for_kubectl() {
+  if ! echo $* | grep -q force
+  then
+   if ! which kubectl > /dev/null
+   then
+     echo
+     echo "ERROR: This must be run on a machine with the kubectl command installed."
+     echo "       Run this script on a control plane node or management machine."
+     echo
+     echo "       Exiting."
+     echo
+     exit
+   fi
+  fi
+}
+
+check_for_helm() {
+  if ! echo $* | grep -q force
+  then
+   if ! which helm > /dev/null
+   then
+     echo
+     echo "ERROR: This must be run on a machine with the helm command installed."
+     echo "       Run this script on a control plane node or management machine."
+     echo
+     echo "       Exiting."
+     echo
+     exit
+   fi
+  fi
+}
+
 ##############################################################################
 
 log_into_app_collection() {
@@ -70,7 +82,7 @@ log_into_app_collection() {
 }
 
 create_ollama_custom_overrides_file() {
-  echo "Writing out ollama_custom_overrides.yaml file ..."
+  echo "Writing out ${CUSTOM_OVERRIDES_FILE} file ..."
   echo "
 global:
   imagePullSecrets:
@@ -80,85 +92,41 @@ persistence:
   storageClass: ${STORAGE_CLASS_NAME}
 ollama:
   defaultModel: ${OLLAMA_MODEL_0}
-  models:" > ollama_custom_overrides.yaml
+  models:
+    pull:" > ${CUSTOM_OVERRIDES_FILE}
 
   if ! [ -z ${OLLAMA_MODEL_0} ]
   then
-    echo "  - \"${OLLAMA_MODEL_0}\" " >> ollama_custom_overrides.yaml
+    echo "    - \"${OLLAMA_MODEL_0}\" " >> ${CUSTOM_OVERRIDES_FILE}
   fi
 
   if ! [ -z ${OLLAMA_MODEL_1} ]
   then
-    echo "  - \"${OLLAMA_MODEL_1}\" " >> ollama_custom_overrides.yaml
+    echo "    - \"${OLLAMA_MODEL_1}\" " >> ${CUSTOM_OVERRIDES_FILE}
   fi
 
   if ! [ -z ${OLLAMA_MODEL_2} ]
   then
-    echo "  - \"${OLLAMA_MODEL_2}\" " >> ollama_custom_overrides.yaml
+    echo "    - \"${OLLAMA_MODEL_2}\" " >> ${CUSTOM_OVERRIDES_FILE}
   fi
 
   if ! [ -z ${OLLAMA_MODEL_3} ]
   then
-    echo "  - \"${OLLAMA_MODEL_3}\" " >> ollama_custom_overrides.yaml
+    echo "    - \"${OLLAMA_MODEL_3}\" " >> ${CUSTOM_OVERRIDES_FILE}
   fi
 
   if ! [ -z ${OLLAMA_MODEL_4} ]
   then
-    echo "  - \"${OLLAMA_MODEL_4}\" " >> ollama_custom_overrides.yaml
+    echo "    - \"${OLLAMA_MODEL_4}\" " >> ${CUSTOM_OVERRIDES_FILE}
   fi
 }
-
-
-#no_gpu() {
-#  echo "COMMAND: 
-#  helm install ollama \
-#    -n ${SUSE_AI_NAMESPACE} --create-namespace \
-#    --set 'global.imagePullSecrets[0].name'=${IMAGE_PULL_SECRET_NAME} \
-#    --set 'persistence.storageClass'=${STORAGE_CLASS_NAME} \
-#    --set 'ingress.host'=${INGRESS_HOST} \
-#    --set 'ollama.models[0]'=${OLLAMA_MODEL_0} \
-#    oci://dp.apps.rancher.io/charts/ollama"
-# 
-#  helm install ollama \
-#    -n ${SUSE_AI_NAMESPACE} --create-namespace \
-#    --set 'global.imagePullSecrets[0].name'=${IMAGE_PULL_SECRET_NAME} \
-#    --set 'persistence.storageClass'=${STORAGE_CLASS_NAME} \
-#    --set 'ingress.host'=${INGRESS_HOST} \
-#    --set 'ollama.models[0]'=${OLLAMA_MODEL_0} \
-#    oci://dp.apps.rancher.io/charts/ollama
-# 
-#  echo
-#}
 
 with_nvidia_gpu() {
   echo "  gpu:
     enabled: true
     type: nvidia
     number: 1
-  runtimeClassName: nvidia " >> ollama_custom_overrides.yaml
-
-  #echo "COMMAND:
-  #helm install ollama \
-  #  -n ${SUSE_AI_NAMESPACE} --create-namespace \
-  #  --set 'global.imagePullSecrets[0].name'=${IMAGE_PULL_SECRET_NAME} \
-  #  --set 'persistence.storageClass'=${STORAGE_CLASS_NAME} \
-  #  --set 'ollama.gpu.enabled'=true \
-  #  --set 'ollama.gpu.type'=nvidia \
-  #  --set 'ollama.gpu.number'=1 \
-  #  --set 'ollama.runtimeClassName'=nvidia \
-  #  --set 'ollama.models[0]'=${OLLAMA_MODEL_0} \
-  #  oci://dp.apps.rancher.io/charts/ollama"
-
-  #helm install ollama \
-  #  -n ${SUSE_AI_NAMESPACE} --create-namespace \
-  #  --set 'global.imagePullSecrets[0].name'=${IMAGE_PULL_SECRET_NAME} \
-  #  --set 'persistence.storageClass'=${STORAGE_CLASS_NAME} \
-  #  --set 'ollama.gpu.enabled'=true \
-  #  --set 'ollama.gpu.type'=nvidia \
-  #  --set 'ollama.gpu.number'=1 \
-  #  --set 'ollama.runtimeClassName'=nvidia \
-  #  --set 'ollama.models[0]'=${OLLAMA_MODEL_0} \
-  #  oci://dp.apps.rancher.io/charts/ollama
+  runtimeClassName: nvidia " >> ${CUSTOM_OVERRIDES_FILE}
 }
 
 with_ingress() {
@@ -168,38 +136,13 @@ with_ingress() {
   - host: ${OLLAMA_INGRESS_HOST}
     paths: 
     - path: /
-      pathType: Prefix " >> ollama_custom_overrides.yaml
+      pathType: Prefix " >> ${CUSTOM_OVERRIDES_FILE}
+}
 
-  #echo "COMMAND:
-  #helm install ollama \
-  #  -n ${SUSE_AI_NAMESPACE} --create-namespace \
-  #  --set 'global.imagePullSecrets[0].name'=${IMAGE_PULL_SECRET_NAME} \
-  #  --set 'persistence.storageClass'=${STORAGE_CLASS_NAME} \
-  #  --set 'ingress.enabled'=true \
-  #  --set 'ingress.hosts[0].host'=${OLLAMA_INGRESS_HOST} \
-  #  --set 'ingress.hosts[0].host.paths[0].path'=/ \
-  #  --set 'ingress.hosts[0].host.paths[0].pathType'=Prefix \
-  #  --set 'ollama.gpu.enabled'=true \
-  #  --set 'ollama.gpu.type'=nvidia \
-  #  --set 'ollama.gpu.number'=1 \
-  #  --set 'ollama.runtimeClassName'=nvidia \
-  #  --set 'ollama.models[0]'=${OLLAMA_MODEL_0} \
-  #  oci://dp.apps.rancher.io/charts/ollama"
-
-  #helm install ollama \
-  #  -n ${SUSE_AI_NAMESPACE} --create-namespace \
-  #  --set 'global.imagePullSecrets[0].name'=${IMAGE_PULL_SECRET_NAME} \
-  #  --set 'persistence.storageClass'=${STORAGE_CLASS_NAME} \
-  #  --set 'ingress.enabled'=true \
-  #  --set 'ingress.hosts[0].host'=${OLLAMA_INGRESS_HOST} \
-  #  --set 'ingress.hosts[0].host.paths[0].path'=/ \
-  #  --set 'ingress.hosts[0].host.paths[0].pathType'=Prefix \
-  #  --set 'ollama.gpu.enabled'=true \
-  #  --set 'ollama.gpu.type'=nvidia \
-  #  --set 'ollama.gpu.number'=1 \
-  #  --set 'ollama.runtimeClassName'=nvidia \
-  #  --set 'ollama.models[0]'=${OLLAMA_MODEL_0} \
-  #  oci://dp.apps.rancher.io/charts/ollama
+display_custom_overrides_file() {
+  echo
+  cat ${CUSTOM_OVERRIDES_FILE}
+  echo
 }
 
 install_ollama() {
@@ -208,17 +151,16 @@ install_ollama() {
     local OLLAMA_VER_ARG="--version ${OLLAMA_VERSION}"
   fi
 
-  cat ollama_custom_overrides.yaml
   echo
   echo "COMMAND:
   helm install ollama \
     -n ${SUSE_AI_NAMESPACE} --create-namespace \
-    -f ollama_custom_overrides.yam \
+    -f ${CUSTOM_OVERRIDES_FILE} \
     oci://dp.apps.rancher.io/charts/ollama ${OLLAMA_VER_ARG}"
 
   helm install ollama \
     -n ${SUSE_AI_NAMESPACE} --create-namespace \
-    -f ollama_custom_overrides.yaml \
+    -f ${CUSTOM_OVERRIDES_FILE} \
     oci://dp.apps.rancher.io/charts/ollama ${OLLAMA_VER_ARG}
 
   echo
@@ -235,26 +177,33 @@ case ${1} in
     create_ollama_custom_overrides_file
     with_nvidia_gpu
     with_ingress
-    echo
-    cat ollama_custom_overrides.yaml
-    echo
+    display_custom_overrides_file
   ;;
   without_gpu)
+    check_for_kubectl
+    check_for_helm
     log_into_app_collection
     create_ollama_custom_overrides_file
+    display_custom_overrides_file
     install_ollama
   ;;
   with_gpu)
+    check_for_kubectl
+    check_for_helm
     log_into_app_collection
     create_ollama_custom_overrides_file
     with_nvidia_gpu
+    display_custom_overrides_file
     install_ollama
   ;;
   with_gpu_and_ingress)
+    check_for_kubectl
+    check_for_helm
     log_into_app_collection
     create_ollama_custom_overrides_file
     with_nvidia_gpu
     with_ingress
+    display_custom_overrides_file
     install_ollama
   ;;
   *)
@@ -263,7 +212,7 @@ case ${1} in
     echo "          without_gpu           (install without GPU support enabled)"
     echo "          with_gpu              (install with GPU support enabled)"
     echo "          with_gpu_and_ingress  (install with GPU support enabled and configure an ingress to Ollama)"
-    echo "          custom_overrides_only (only write out the ollama_custom_overrides.yaml file)"
+    echo "          custom_overrides_only (only write out the ${CUSTOM_OVERRIDES_FILE} file)"
     echo
     echo "Example: ${0} without_gpu"
     echo "         ${0} with_gpu"
