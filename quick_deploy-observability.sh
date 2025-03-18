@@ -42,12 +42,16 @@ echo " Updating ${CONFIG_FILE} ..."
 echo "------------------------------------------------------------------------------"
 echo
 
-echo "COMMAND: sed -i \"s/observability/${CLUSTER_NAME}/g\" ${CONFIG_FILE}"
-sed -i "s/observability/${CLUSTER_NAME}/g" ${CONFIG_FILE}
+echo "COMMAND: sed -i \"s/export CLUSTER_NAME=.*/export CLUSTER_NAME=${CLUSTER_NAME}/g\" ${CONFIG_FILE}"
+sed -i "s/export CLUSTER_NAME=.*/export CLUSTER_NAME=${CLUSTER_NAME}/g" ${CONFIG_FILE}
 echo
 
-echo "COMMAND: sed -i \"s/example.com/${DOMAIN}/g\" ${CONFIG_FILE}"
-sed -i "s/example.com/${DOMAIN}/g" ${CONFIG_FILE}
+echo "COMMAND: sed -i \"s/export DOMAIN_NAME=.*/export DOMAIN_NAME=${DOMAIN}/g\" ${CONFIG_FILE}"
+sed -i "s/export DOMAIN_NAME=.*/export DOMAIN_NAME=${DOMAIN}/g" ${CONFIG_FILE}
+echo
+
+echo "COMMAND: sed -i \"s/export OBSERVABILITY_HOST=.*/export OBSERVABILITY_HOST=${CLUSTER_NAME}.${DOMAIN}/g\" ${CONFIG_FILE}"
+sed -i "s/export OBSERVABILITY_HOST=.*/export OBSERVABILITY_HOST=${CLUSTER_NAME}.${DOMAIN}/g" ${CONFIG_FILE}
 echo
 
 echo "------------------------------------------------------------------------------"
