@@ -71,16 +71,6 @@ echo
 echo "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
 echo
 
-echo
-echo "=============================================================================="
-echo "  You can access Rancher Manager at: https://${CLUSTER_NAME}.${DOMAIN}"
-echo 
-echo "  Log in using the following credentials: "
-echo "    Admin Username: admin"
-echo "    Admin Password: ${RANCHER_ADMIN_PW}"
-echo "=============================================================================="
-echo
-
 source ${CONFIG_FILE}
 
 echo "##############################################################################"
@@ -89,5 +79,14 @@ echo
 kubectl -n cattle-system get all
 echo
 echo "##############################################################################"
+
+echo
+echo "=============================================================================="
+echo "  You can access Rancher Manager at: https://${CLUSTER_NAME}.${DOMAIN}"
+echo 
+echo "  Log in using the following credentials: "
+echo "    Admin Username: admin"
+echo "    Admin Password: ${RANCHER_ADMIN_PW}"
+echo "=============================================================================="
 echo
 

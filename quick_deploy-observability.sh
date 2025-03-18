@@ -77,31 +77,6 @@ echo
 echo "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
 echo
 
-echo
-echo "=============================================================================="
-echo "  You can access SUSE Observability at: https://${CLUSTER_NAME}.${DOMAIN}"
-echo 
-echo "  Log in using the following credentials: "
-echo "    Admin Username: ${OBSERVABILITY_ADMIN_USERNAME}"
-echo "    Admin Password: ${OBSERVABILITY_ADMIN_PASSWORD}"
-
-if ! [ -z ${OBSERVABILITY_USERS_LIST} ]
-then
-  for OBSV_USER in ${OBSERVABILITY_USERS_LIST}
-  do
-    OBSV_USER_NAME=$(echo ${OBSV_USER} | cut -d : -f 1)
-    OBSV_USER_PASSWD=$(echo ${OBSV_USER} | cut -d : -f 2)
-    OBSV_USER_ROLE=$(echo ${OBSV_USER} | cut -d : -f 3)
-    echo 
-    echo "Username: ${OBSV_USER_NAME}"
-    echo "Password: ${OBSV_USER_PASSWD}"
-    echo "(User's role: ${OBSV_USER_ROLE})"
-  done
-fi
-
-echo "=============================================================================="
-echo
-
 source ${CONFIG_FILE}
 
 echo "##############################################################################"
@@ -110,5 +85,29 @@ echo
 kubectl -n ${OBSERVABILITY_NAMESPACE} get all
 echo
 echo "##############################################################################"
+
+echo
+echo "=============================================================================="
+echo "  You can access SUSE Observability at: https://${CLUSTER_NAME}.${DOMAIN}"
+echo 
+echo "  Log in using the following credentials: "
+echo "    Admin Username: ${OBSERVABILITY_ADMIN_USERNAME}"
+echo "    Admin Password: ${OBSERVABILITY_ADMIN_PASSWORD}"
+
+if ! [ -z "${OBSERVABILITY_USERS_LIST}" ]
+then
+  for OBSV_USER in ${OBSERVABILITY_USERS_LIST}
+  do
+    OBSV_USER_NAME=$(echo ${OBSV_USER} | cut -d : -f 1)
+    OBSV_USER_PASSWD=$(echo ${OBSV_USER} | cut -d : -f 2)
+    OBSV_USER_ROLE=$(echo ${OBSV_USER} | cut -d : -f 3)
+    echo 
+    echo "    Username: ${OBSV_USER_NAME}"
+    echo "    Password: ${OBSV_USER_PASSWD}"
+    echo "    (User's role: ${OBSV_USER_ROLE})"
+  done
+fi
+
+echo "=============================================================================="
 echo
 
