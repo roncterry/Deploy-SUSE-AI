@@ -27,6 +27,8 @@ then
   LH_URL="$(hostname -f)"
 fi
 
+CUSTOM_OVERRIDES_FILE=longhorn-values.yaml
+
 source /etc/os-release
 
 ##############################################################################
@@ -103,8 +105,8 @@ install_openiscsi() {
   esac
 }
 
-deploy_longhorn() {
-  echo "Writing out longhorn-values.yaml file ..."
+write_out_longhorn_custom_overrides_file() {
+  echo "Writing out ${CUSTOM_OVERRIDES_FILE} file ..."
   echo
   echo "
 defaultSettings:
@@ -117,11 +119,17 @@ csi:
   provisionerReplicaCount: ${LH_CSI_REPLICA_COUNT}
   resizerReplicaCount: ${LH_CSI_REPLICA_COUNT}
   snapshotterReplicaCount: ${LH_CSI_REPLICA_COUNT}
-" > longhorn-values.yaml
+" > ${CUSTOM_OVERRIDES_FILE}
   echo
-  cat longhorn-values.yaml
-  echo
+}
 
+display_custom_overrides_file() {
+  echo
+  cat ${CUSTOM_OVERRIDES_FILE}
+  echo
+}
+
+deploy_longhorn() {
   if ! helm repo list | grep -q longhorn
   then
     echo "COMMAND: helm repo add longhorn ${LH_HELM_REPO_URL}"
@@ -132,8 +140,8 @@ csi:
   helm repo update
   echo
 
-  echo "COMMAND: helm install longhorn --namespace longhorn-system --create-namespace -f longhorn-values.yaml longhorn/longhorn"
-  helm install longhorn --namespace longhorn-system --create-namespace -f longhorn-values.yaml longhorn/longhorn
+  echo "COMMAND: helm upgrade --install longhorn --namespace longhorn-system --create-namespace -f longhorn-values.yaml longhorn/longhorn"
+  helm upgrade --install longhorn --namespace longhorn-system --create-namespace -f longhorn-values.yaml longhorn/longhorn
   echo
 
   echo "COMMAND: kubectl -n longhorn-system rollout status deploy/longhorn-driver-deployer"
@@ -196,15 +204,17 @@ csi:
   echo
 }
 
-create_longhorn_ingress() {
+create_longhorn_ingress_secret() {
   echo "${LH_USER}:$(openssl passwd -stdin -apr1 <<< ${LH_PASSWORD})" > longhorn-auth
 
   echo "Creating secret for Longhorn ingress access ..."
   echo "COMMAND: kubectl -n longhorn-system create secret generic longhorn-auth --from-file=longhorn-auth"
   kubectl -n longhorn-system create secret generic longhorn-auth --from-file=longhorn-auth
   echo
+}
 
-  echo "Writing out longhor-ingress.yaml ..."
+write_out_longhorn_ingress_manifest() {
+  echo "Writing out longhorn-ingress.yaml ..."
   echo
   echo "
 apiVersion: networking.k8s.io/v1
@@ -239,7 +249,9 @@ spec:
   echo
   cat longhorn-ingress.yaml
   echo
+}
 
+create_longhorn_ingress() {
   echo "COMMAND: kubectl -n longhorn-system create -f longhorn-ingress.yaml"
   kubectl -n longhorn-system create -f longhorn-ingress.yaml
   echo
@@ -250,17 +262,54 @@ spec:
   echo 
 }
 
+usage() {
+  echo
+  echo "USAGE: ${0} [custom_overrides_only|install_only]"
+  echo
+  echo "Options: "
+  echo "    custom_overrides_only  (only write out the ${CUSTOM_OVERRIDES_FILE} file)"
+  echo "    install_only           (only run an install using an existing ${CUSTOM_OVERRIDES_FILE} file)"
+  echo
+  echo "If no option is supplied the ${CUSTOM_OVERRIDES_FILE} file is created and"
+  echo "is used to perform an installation using 'helm upgrade --install'."
+  echo
+  echo "Example: ${0}"
+  echo "         ${0} custom_overrides_only"
+  echo "         ${0} install_only"
+  echo
+}
+
 ###############################################################################
 
-install_openiscsi
+case ${1} in
+  custom_overrides_only)
+    write_out_longhorn_custom_overrides_file
+    display_custom_overrides_file
+  ;;
+  install_only)
+    install_openiscsi
+    check_for_kubectl
+    check_for_helm
+    display_custom_overrides_file
+    deploy_longhorn
+  ;;
+  help|-h|--help)
+    usage
+    exit
+  ;;
+  *)
+    install_openiscsi
+    check_for_kubectl
+    check_for_helm
+    write_out_longhorn_custom_overrides_file
+    display_custom_overrides_file
+    deploy_longhorn
+  ;;
+esac
 
-check_for_kubectl
-check_for_helm
-
-deploy_longhorn
-
-if echo ${*} | grep -q with-ingress
+if echo ${*} | grep -q with_ingress
 then
+  write_out_longhorn_ingress_manifest
+  create_longhorn_ingress_secret
   create_longhorn_ingress
 fi
-
