@@ -195,12 +195,12 @@ install_open_webui() {
 
   echo
   echo "COMMAND:
-  helm install open-webui \
+  helm upgrade --install open-webui \
     -n ${SUSE_AI_NAMESPACE} --create-namespace \
     -f ${CUSTOM_OVERRIDES_FILE} \
     oci://dp.apps.rancher.io/charts/open-webui ${OWUI_VER_ARG}"
 
-  helm install open-webui \
+  helm upgrade --install open-webui \
     -n ${SUSE_AI_NAMESPACE} --create-namespace \
     -f ${CUSTOM_OVERRIDES_FILE} \
     oci://dp.apps.rancher.io/charts/open-webui ${OWUI_VER_ARG}
@@ -216,6 +216,27 @@ install_open_webui() {
   echo
 }
 
+usage() {
+  echo
+  echo "USAGE: ${0} <option>"
+  echo
+  echo " You must supply one of the following options: "
+  echo "   without_gpu                      (install without GPU support enabled)"
+  echo "   with_gpu                         (install with GPU support enabled)"
+  echo "   with_gpu_and_milvus              (install with GPU support and Milvus enabled)"
+  echo "   with_external_ollama_and_milvus  (install using external Ollama and Milvus enabled)"
+  echo "   custom_overrides_only            (only write out the ${CUSTOM_OVERRIDES_FILE} file)"
+  echo "   install_only                     (only run an install using an existing ${CUSTOM_OVERRIDES_FILE} file)"
+  echo
+  echo "Example: ${0} without_gpu"
+  echo "         ${0} with_gpu"
+  echo "         ${0} with_gpu_and_milvus"
+  echo "         ${0} with_external_ollama_and_milvus"
+  echo "         ${0} custom_overrides_only"
+  echo "         ${0} install_only"
+  echo
+}
+
 ##############################################################################
 
 
@@ -227,6 +248,14 @@ case ${1} in
     add_extra_envvars_to_custom_overrides_file
     add_milvus_to_custom_overrides_file
     display_custom_overrides_file
+  ;;
+  install_only)
+    check_for_kubectl
+    check_for_helm
+    install_certmanager_crds
+    log_into_app_collection
+    display_custom_overrides_file
+    install_open_webui
   ;;
   without_gpu)
     check_for_kubectl
@@ -276,19 +305,7 @@ case ${1} in
     install_open_webui
   ;;
   *)
-    echo "ERROR:  Must supply one of the following: "
-    echo "          without_gpu                      (install without GPU support enabled)"
-    echo "          with_gpu                         (install with GPU support enabled)"
-    echo "          with_gpu_and_milvus              (install with GPU support and Milvus enabled)"
-    echo "          with_external_ollama_and_milvus  (install using external Ollama and Milvus enabled)"
-    echo "          custom_overrides_only            (only write out the ${CUSTOM_OVERRIDES_FILE} file)"
-    echo
-    echo "Example: ${0} without_gpu"
-    echo "         ${0} with_gpu"
-    echo "         ${0} with_gpu_and_milvus"
-    echo "         ${0} with_external_ollama_and_milvus"
-    echo "         ${0} custom_overrides_only"
-    echo
+    usage
     exit
   ;;
 esac

@@ -198,12 +198,40 @@ deploy_milvus() {
   echo
 }
 
+usage() {
+  echo
+  echo "USAGE: ${0} [custom_overrides_only|install_only]"
+  echo
+  echo "Options: "
+  echo "    custom_overrides_only  (only write out the ${CUSTOM_OVERRIDES_FILE} file)"
+  echo "    install_only           (only run an install using an existing ${CUSTOM_OVERRIDES_FILE} file)"
+  echo
+  echo "If no option is supplied the ${CUSTOM_OVERRIDES_FILE} file is created and"
+  echo "is used to perform an installation using 'helm upgrade --install'."
+  echo
+  echo "Example: ${0}"
+  echo "         ${0} custom_overrides_only"
+  echo "         ${0} install_only"
+  echo
+}
+
 ##############################################################################
 
 case ${1} in
   custom_overrides_only)
     create_milvus_custom_overrides_file
     display_custom_overrides_file
+  ;;
+  install_only)
+    check_for_kubectl
+    check_for_helm
+    log_into_app_collection
+    display_custom_overrides_file
+    deploy_milvus
+  ;;
+  help|-h|--help)
+    usage
+    exit
   ;;
   *)
     check_for_kubectl

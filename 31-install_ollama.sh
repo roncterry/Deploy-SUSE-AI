@@ -153,12 +153,12 @@ install_ollama() {
 
   echo
   echo "COMMAND:
-  helm install ollama \
+  helm upgrade --install ollama \
     -n ${SUSE_AI_NAMESPACE} --create-namespace \
     -f ${CUSTOM_OVERRIDES_FILE} \
     oci://dp.apps.rancher.io/charts/ollama ${OLLAMA_VER_ARG}"
 
-  helm install ollama \
+  helm upgrade --install ollama \
     -n ${SUSE_AI_NAMESPACE} --create-namespace \
     -f ${CUSTOM_OVERRIDES_FILE} \
     oci://dp.apps.rancher.io/charts/ollama ${OLLAMA_VER_ARG}
@@ -170,6 +170,25 @@ install_ollama() {
   echo
 }
 
+usage() {
+  echo
+  echo "USAGE: ${0} <option>"
+  echo
+  echo " You must supply one of the following options: "
+  echo "   without_gpu           (install without GPU support enabled)"
+  echo "   with_gpu              (install with GPU support enabled)"
+  echo "   with_gpu_and_ingress  (install with GPU support enabled and configure an ingress to Ollama)"
+  echo "   custom_overrides_only (only write out the ${CUSTOM_OVERRIDES_FILE} file)"
+  echo "   install_only          (only run an install using an existing ${CUSTOM_OVERRIDES_FILE} file)"
+  echo
+  echo "Example: ${0} without_gpu"
+  echo "         ${0} with_gpu"
+  echo "         ${0} with_gpu_and_ingress"
+  echo "         ${0} custom_overrides_only"
+  echo "         ${0} install_only"
+  echo
+}
+
 ##############################################################################
 
 case ${1} in
@@ -178,6 +197,13 @@ case ${1} in
     with_nvidia_gpu
     with_ingress
     display_custom_overrides_file
+  ;;
+  install_only)
+    check_for_kubectl
+    check_for_helm
+    log_into_app_collection
+    display_custom_overrides_file
+    install_ollama
   ;;
   without_gpu)
     check_for_kubectl
@@ -207,18 +233,7 @@ case ${1} in
     install_ollama
   ;;
   *)
-    echo "ERROR:  Must supply one of the following: "
-    echo
-    echo "          without_gpu           (install without GPU support enabled)"
-    echo "          with_gpu              (install with GPU support enabled)"
-    echo "          with_gpu_and_ingress  (install with GPU support enabled and configure an ingress to Ollama)"
-    echo "          custom_overrides_only (only write out the ${CUSTOM_OVERRIDES_FILE} file)"
-    echo
-    echo "Example: ${0} without_gpu"
-    echo "         ${0} with_gpu"
-    echo "         ${0} with_gpu_and_ingress"
-    echo "         ${0} custom_overrides_only"
-    echo
+    usage
     exit
   ;;
 esac

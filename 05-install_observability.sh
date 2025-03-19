@@ -235,6 +235,23 @@ install_observability() {
   echo
 }
 
+usage() {
+  echo 
+  echo "USAGE: ${0} [templates_only|install_only]"
+  echo 
+  echo "Options: "
+  echo "    custom_overrides_only  (only write out the ${CUSTOM_OVERRIDES_FILE} file)"
+  echo "    install_only           (only run an install using an existing ${CUSTOM_OVERRIDES_FILE} file)"
+  echo
+  echo "If no option is supplied the ${CUSTOM_OVERRIDES_FILE} file is created and"
+  echo "is used to perform an installation using 'helm upgrade --install'."
+  echo
+  echo "Example: ${0}"
+  echo "         ${0} custom_overrides_only"
+  echo "         ${0} install_only"
+  echo 
+}
+
 ##############################################################################
 
 install_apache2utils
@@ -254,9 +271,7 @@ case ${1} in
     install_observability
   ;;
   help|-h|--help)
-    echo 
-    echo "USAGE: ${0} [templates_only|install_only]"
-    echo 
+    usage
     exit
   ;;
   *)
