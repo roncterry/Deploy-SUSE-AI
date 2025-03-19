@@ -79,8 +79,8 @@ echo
 echo "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
 echo
 
-echo "[31-install_milvus.sh]" 
-bash 31-install_milvus.sh 
+echo "[32-install_milvus.sh]" 
+bash 32-install_milvus.sh 
 echo
 echo "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
 echo
