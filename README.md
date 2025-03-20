@@ -24,7 +24,7 @@ If you do not already have Rancher Manager deployed into a management cluster an
 
 1) Deploy the Rancher Manager Cluster
 
-   a) View/edit the common Rancher deployment config file (`deploy_rancher.cfg`) and make any changes needed such as the number of replicas counts (for single node clusters leave all of the replica counts at `1`)
+   a) View/edit the common Rancher deployment config file (`deploy_rancher.cfg`) and make any changes needed such as the hostname, admin password, number of replicas counts (for single node clusters leave all of the replica counts at `1`), TLS configuration (self-signed, Let's Encrypt, secret), etc.
 
    b) On the first Rancher Manager cluster node, the one that will be the (1st) control plan node, run the script (***Note:** This script requires root privileges*): `01a-install_first_rke2_server-rancher_cluster.sh` 
 
