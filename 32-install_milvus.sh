@@ -158,8 +158,6 @@ kafka:
     storageClassName: ${STORAGE_CLASS_NAME}
 " > ${CUSTOM_OVERRIDES_FILE}
   echo
-  cat ${CUSTOM_OVERRIDES_FILE}
-  echo
 }
 
 display_custom_overrides_file() {
