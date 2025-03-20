@@ -37,9 +37,9 @@ else
   fi
 fi
 
-echo "------------------------------------------------------------------------------"
+echo "=============================================================================="
 echo " Updating ${CONFIG_FILE} ..."
-echo "------------------------------------------------------------------------------"
+echo "=============================================================================="
 echo
 
 echo "COMMAND: sed -i \"s/export CLUSTER_NAME=.*/export CLUSTER_NAME=${CLUSTER_NAME}/g\" ${CONFIG_FILE}"
@@ -54,24 +54,33 @@ echo "COMMAND: sed -i \"s/export OBSERVABILITY_HOST=.*/export OBSERVABILITY_HOST
 sed -i "s/export OBSERVABILITY_HOST=.*/export OBSERVABILITY_HOST=${CLUSTER_NAME}.${DOMAIN}/g" ${CONFIG_FILE}
 echo
 
-echo "------------------------------------------------------------------------------"
+echo "=============================================================================="
 echo " Installing SUSE Observability ..."
-echo "------------------------------------------------------------------------------"
+echo "=============================================================================="
 echo
 
-echo "[03a-install_first_rke2_server-observability_cluster.sh]"
+echo "+----------------------------------------------------------------------------+"
+echo "| 03a-install_first_rke2_server-observability_cluster.sh "
+echo "+----------------------------------------------------------------------------+"
+echo
 bash 03a-install_first_rke2_server-observability_cluster.sh 
 echo
 echo "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
 echo
 
-echo "[04-install_longhorn-observability_cluster.sh]" 
+echo "+----------------------------------------------------------------------------+"
+echo "| 04-install_longhorn-observability_cluster.sh " 
+echo "+----------------------------------------------------------------------------+"
+echo
 bash 04-install_longhorn-observability_cluster.sh 
 echo
 echo "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
 echo
 
-echo "[05-install_observability.sh]" 
+echo "+----------------------------------------------------------------------------+"
+echo "| 05-install_observability.sh " 
+echo "+----------------------------------------------------------------------------+"
+echo
 bash 05-install_observability.sh 
 echo
 echo "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
