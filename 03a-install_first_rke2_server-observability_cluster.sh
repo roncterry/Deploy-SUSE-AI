@@ -112,6 +112,27 @@ case ${NODE_TYPE} in
     echo "COMMAND: kubectl get nodes"
     kubectl get nodes
     echo
+
+    echo -n "Waiting for the ingress controller to be ready "
+    until kubectl -n kube-system get daemonset | grep -v ^NAME | grep ingress | awk '{ print $6 }' | grep -q [1-9]
+    do
+      echo -n "."
+      sleep 2
+    done
+    echo "."
+    echo
+
+    echo -n "Waiting for coredns to be ready "
+    until kubectl -n kube-system get deployment | grep coredns | grep -v autoscaler | awk '{ print $4 }' | grep -q [1-9]
+    do
+      echo -n "."
+      sleep 2
+    done
+    echo "."
+    echo
+
+    echo "-----  The cluster is installed and running  -----"
+    echo
   ;;
   agent)
     echo "COMMAND: mkdir ~/.kube"
