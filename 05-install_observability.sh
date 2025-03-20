@@ -118,9 +118,60 @@ create_observability_templates() {
 write_out_observability_ingress_values_file() {
   if ! [ -z "${OBSERVABILITY_HOST}" ]
   then
-    echo "Writing out ingress values ..."
-    echo
-    echo "
+    case ${OBSERVABILITY_TLS_SOURCE} in
+      secret)
+        echo "COMMAND: kubectl -n ${OBSERVABILITY_NAMESPACE} create secret tls tls-ingress-secret --cert ${OBSERVABILITY_TLS_CERT_FILE} --key ${OBSERVABILITY_TLS_KEY_FILE}"
+        kubectl -n ${OBSERVABILITY_NAMESPACE} create secret tls tls-ingress-secret --cert ${OBSERVABILITY_TLS_CERT_FILE} --key ${OBSERVABILITY_TLS_KEY_FILE}
+        echo
+
+        echo "COMMAND: kubectl -n ${OBSERVABILITY_NAMESPACE} create secret generic tls-ca --from-file=${OBSERVABILITY_TLS_CA_FILE}"
+        kubectl -n ${OBSERVABILITY_NAMESPACE} create secret generic tls-ca --from-file=${OBSERVABILITY_TLS_CA_FILE}
+        echo
+
+        echo "Writing out ingress values ..."
+        echo
+        echo "
+ingress:
+  annotations: 
+    nginx.ingress.kubernetes.io/proxy-body-size: '50m'
+    nginx.ingress.kubernetes.io/proxy-read-timeout: '3600'
+    nginx.ingress.kubernetes.io/proxy-send-timeout: '3600'
+  enabled: true
+  path: /
+  hosts: 
+    - host: ${OBSERVABILITY_HOST}
+  tls:
+    - hosts:
+        - ${OBSERVABILITY_HOST}
+      secretName: tls-ingress-secret
+" > ${OBSERVABILITY_VALUES_DIR}/suse-observability-values/templates/ingress_values.yaml
+      ;;
+      letsEncrypt)
+        echo "Writing out ingress values ..."
+        echo
+        echo "
+ingress:
+  annotations: 
+    nginx.ingress.kubernetes.io/proxy-body-size: '50m'
+    nginx.ingress.kubernetes.io/proxy-read-timeout: '3600'
+    nginx.ingress.kubernetes.io/proxy-send-timeout: '3600'
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    cert-manager.io/acme-challenge-type: "http01"
+    cert-manager.io/acme-challenge-path: "/.well-known/acme-challenge"
+  enabled: true
+  path: /
+  hosts: 
+    - host: ${OBSERVABILITY_HOST}
+  tls:
+    - hosts:
+        - ${OBSERVABILITY_HOST}
+      secretName: tls-secret
+" > ${OBSERVABILITY_VALUES_DIR}/suse-observability-values/templates/ingress_values.yaml
+      ;;
+      *)
+        echo "Writing out ingress values ..."
+        echo
+        echo "
 ingress:
   annotations: 
     nginx.ingress.kubernetes.io/proxy-body-size: '50m'
@@ -131,6 +182,8 @@ ingress:
   hosts: 
     - host: ${OBSERVABILITY_HOST}
 " > ${OBSERVABILITY_VALUES_DIR}/suse-observability-values/templates/ingress_values.yaml
+      ;;
+    esac
     cat ${OBSERVABILITY_VALUES_DIR}/suse-observability-values/templates/ingress_values.yaml
     echo 
 
@@ -197,6 +250,25 @@ stackstate:
     export OBSERVABILITY_AUTH_VALUES_ARG="--values ${OBSERVABILITY_VALUES_DIR}/suse-observability-values/templates/authentication_values.yaml"
     echo
   fi
+}
+
+install_certmanager_for_observability() {
+  echo "Installing Cert-Manager ..."
+  echo "------------------------------------------------------------"
+  echo "COMMAND: 
+  helm repo add cert-manager ${CERTMANAGER_HELM_REPO}
+  helm repo update"
+
+  helm repo add cert-manager ${CERTMANAGER_HELM_REPO}
+  helm repo update
+
+  echo
+  echo "COMMAND: helm install suse-observability-cert-manager cert-manager/cert-manager --namespace ${OBSERVABILITY_NAMESPACE} --create-namespace --set crds.enabled=true ${CERTMANAGER_VERSION}"
+  helm install suse-observability-cert-manager cert-manager/cert-manager --namespace ${OBSERVABILITY_NAMESPACE} --create-namespace --set crds.enabled=true ${CERTMANAGER_VERSION}
+
+  echo
+  echo "COMMAND: kubectl -n cert-manager rollout status deploy/cert-manager"
+  kubectl -n cert-manager rollout status deploy/cert-manager
 }
 
 install_observability() {
