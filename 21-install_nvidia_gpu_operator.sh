@@ -19,7 +19,7 @@ fi
 
 MANIFEST_FILE=nvidia-gpu-operator.yaml
 
-CUSTOM_OVERRIDES_FILE=nvidia-gpu-operator-values.yaml
+CUSTOM_OVERRIDES_FILE=nvidia_gpu_operator_custom_overrides.yaml
 
 ##############################################################################
 
