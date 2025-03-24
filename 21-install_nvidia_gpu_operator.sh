@@ -17,6 +17,10 @@ else
   NVIDIA_GPU_OPERATOR_REPO_URL=https://helm.ngc.nvidia.com/nvidia
 fi
 
+MANIFEST_FILE=nvidia-gpu-operator.yaml
+
+CUSTOM_OVERRIDES_FILE=nvidia-gpu-operator-values.yaml
+
 ##############################################################################
 
 check_for_kubectl() {
@@ -53,8 +57,8 @@ check_for_helm() {
 
 ##############################################################################
 
-deploy_nvidia_gpu_operator_via_the_helm_operator() {
-  echo "Writing out nvidia-gpu-operator.yaml ..."
+write_out_nvidia_gpu_operator_helm_operator_manifest_file() {
+  echo "Writing out ${MANIFEST_FILE} (helm operator manifest) ..."
   echo
 
   echo "
@@ -81,18 +85,23 @@ spec:
         value: nvidia
       - name: CONTAINERD_SET_AS_DEFAULT
         value: \"true\"
-" > nvidia-gpu-operator.yaml
+" > ${MANIFEST_FILE}
+}
 
-  cat nvidia-gpu-operator.yaml
+display_nvidia_operator_helm_operator_manifest_file() {
   echo
-
-  echo "COMMAND: kubectl apply -f nvidia-gpu-operator.yaml"
-  kubectl apply -f nvidia-gpu-operator.yaml
+  cat ${MANIFEST_FILE}
   echo
 }
 
-deploy_nvidia_gpu_operator() {
-  echo "Writing out nvidia-gpu-operator-values.yaml ..."
+deploy_nvidia_gpu_operator_via_the_helm_operator() {
+  echo "COMMAND: kubectl apply -f ${MANIFEST_FILE}"
+  kubectl apply -f ${MANIFEST_FILE}
+  echo
+}
+
+write_out_nvidia_gpu_operator_custom_overrides_file() {
+  echo "Writing out ${CUSTOM_OVERRIDES_FILE} ..."
   echo
 
   echo "
@@ -108,11 +117,16 @@ toolkit:
     value: nvidia
   - name: CONTAINERD_SET_AS_DEFAULT
     value: \"true\"
-" > nvidia-gpu-operator-values.yaml
+" > ${CUSTOM_OVERRIDES_FILE}
+}
 
-  cat nvidia-gpu-operator-values.yaml
+display_nvidia_gpu_operator_custom_overrides_file() {
   echo
+  cat ${CUSTOM_OVERRIDES_FILE}
+  echo
+}
 
+deploy_nvidia_gpu_operator() {
   echo "COMMAND: helm repo add nvidia ${NVIDIA_GPU_OPERATOR_REPO_URL}"
   helm repo add nvidia ${NVIDIA_GPU_OPERATOR_REPO_URL}
   echo
@@ -121,8 +135,8 @@ toolkit:
   helm repo update
   echo
 
-  echo "COMMAND: helm install gpu-operator -n gpu-operator --create-namespace  -f nvidia-gpu-operator-values.yaml nvidia/gpu-operator"
-  helm install gpu-operator -n gpu-operator --create-namespace -f nvidia-gpu-operator-values.yaml nvidia/gpu-operator
+  echo "COMMAND: helm install gpu-operator -n gpu-operator --create-namespace  -f ${CUSTOM_OVERRIDES_FILE} nvidia/gpu-operator"
+  helm install gpu-operator -n gpu-operator --create-namespace -f ${CUSTOM_OVERRIDES_FILE} nvidia/gpu-operator
   echo
 }
 
@@ -171,9 +185,8 @@ show_nvidia_gpu_operator_deployment_status() {
   echo
 }
 
-verify_nvidia_gpu_operator_deployment() {
-  echo
-  echo "Verifying nvidia-gpu-operator deployment:"
+label_gpu_nodes() {
+  echo "Labeling GPU nodes ..."
   for NODE in $(kubectl get nodes | grep -v ^NAME | awk '{ print $1 }')
   do
     echo "---------------------"
@@ -190,7 +203,38 @@ verify_nvidia_gpu_operator_deployment() {
         kubectl label node ${NODE} accelerator=nvidia-gpu
         echo
       fi
+    else
+      echo GPU_NODE=false
+      echo
+      echo "Note: If you think this is incorrect it may be because the metadata labels"
+      echo"       may not have been updated yet."
+      echo "      Wait about 10-15 seconds and run this script again with the 'label_only'"
+      echo "      argument to attempt the labeling of the GPU nodes again."
+      echo
+    fi
+  done
+}
 
+verify_nvidia_gpu_operator_deployment() {
+  echo
+  echo "Verifying nvidia-gpu-operator deployment:"
+  for NODE in $(kubectl get nodes | grep -v ^NAME | awk '{ print $1 }')
+  do
+    echo "---------------------"
+    echo "Node: ${NODE}"
+    echo "---------------------"
+    if kubectl get node ${NODE} -o jsonpath='{.metadata.labels}' | jq | grep -q "nvidia.com/gpu.machine"
+    then
+#      echo GPU_NODE=true
+#      echo
+#
+#      if ! kubectl get node ${NODE} -o jsonpath='{.metadata.labels}' | jq | grep -q "accelerator"
+#      then
+#        echo "COMMAND: kubectl label node ${NODE} accelerator=nvidia-gpu"
+#        kubectl label node ${NODE} accelerator=nvidia-gpu
+#        echo
+#      fi
+#
       echo "COMMAND: kubectl get node ${NODE} -o jsonpath='{.metadata.labels}' | jq | grep "accelerator""
       kubectl get node ${NODE} -o jsonpath='{.metadata.labels}' | jq | grep "accelerator"
       echo
@@ -223,26 +267,117 @@ verify_nvidia_gpu_operator_deployment() {
       #sh root@${NODE} 'grep nvidia /var/lib/rancher/rke2/agent/etc/containerd/config.toml'
       echo
       echo
-    else
-      echo GPU_NODE=false
-      echo
-      echo "Note: If you think this is incorrect wait about 10-15 seconds and run"
-      echo "      this script again. The metadata labels may not have been updated yet."
-      echo
+#    else
+#      echo GPU_NODE=false
+#      echo
+#      echo "Note: If you think this is incorrect wait about 10-15 seconds and run"
+#      echo "      this script again. The metadata labels may not have been updated yet."
+#      echo
     fi
 done
 }
 
+usage() {
+  echo
+  echo "USAGE: ${0} [custom_overrides_only|install_only|label_nodes_only|verify_only]"
+  echo
+  echo "Options: "
+  echo "    custom_overrides_only  (only write out the ${CUSTOM_OVERRIDES_FILE} file)"
+  echo "    install_only           (only run an install using an existing ${CUSTOM_OVERRIDES_FILE} file)"
+  echo "    label_nodes_only       (only label the GPU nodes)"
+  echo "    verify_only            (only display verification of the GPU nodes)"
+  echo
+  echo "If no option is supplied the ${CUSTOM_OVERRIDES_FILE} file is created and"
+  echo "is used to perform an installation using 'helm upgrade --install'."
+  echo
+  echo "Example: ${0}"
+  echo "         ${0} custom_overrides_only"
+  echo "         ${0} install_only"
+  echo "         ${0} label_nodes_only"
+  echo "         ${0} verify_only"
+  echo
+}
+
 ##############################################################################
 
-check_for_kubectl
-check_for_helm
+case ${1} in
+  manifest_only)
+    write_out_nvidia_gpu_operator_helm_operator_manifest_file
+    display_nvidia_operator_helm_operator_manifest_file
+  ;;
+  custom_overrides_only)
+    write_out_nvidia_gpu_operator_custom_overrides_file
+    display_nvidia_gpu_operator_custom_overrides_file
+  ;;
+  #-----
+  install_only)
+    check_for_kubectl
+    check_for_helm
+    if ! kubectl get pods -A | grep -q nvidia-operator-validator
+    then
+      display_nvidia_gpu_operator_custom_overrides_file
+      deploy_nvidia_gpu_operator
+      show_nvidia_gpu_operator_deployment_status
+      label_gpu_nodes
+    fi
+    verify_nvidia_gpu_operator_deployment
+  ;;
+  install_only_via_helm_operator)
+    check_for_kubectl
+    if ! kubectl get pods -A | grep -q nvidia-operator-validator
+    then
+      display_nvidia_operator_helm_operator_manifest_file
+      deploy_nvidia_gpu_operator_via_the_helm_operator
+      show_nvidia_gpu_operator_deployment_status
+      label_gpu_nodes
+    fi
+    verify_nvidia_gpu_operator_deployment
+  ;;
+  #-----
+  via_helm_operator)
+    check_for_kubectl
+    if ! kubectl get pods -A | grep -q nvidia-operator-validator
+    then
+      write_out_nvidia_gpu_operator_helm_operator_manifest_file
+      display_nvidia_operator_helm_operator_manifest_file
+      deploy_nvidia_gpu_operator_via_the_helm_operator
+      show_nvidia_gpu_operator_deployment_status
+      label_gpu_nodes
+    fi
+    verify_nvidia_gpu_operator_deployment
+  ;;
+  #-----
+  label_nodes_only)
+    check_for_kubectl
+    if kubectl get pods -A | grep -q nvidia-operator-validator
+    then
+      label_gpu_nodes
+    fi
+  ;;
+  #-----
+  verify_only)
+    check_for_kubectl
+    if kubectl get pods -A | grep -q nvidia-operator-validator
+    then
+      verify_nvidia_gpu_operator_deployment
+    fi
+  ;;
+  help|-h|--help)
+    usage
+    exit
+  ;;
+  *)
+    check_for_kubectl
+    check_for_helm
+    if ! kubectl get pods -A | grep -q nvidia-operator-validator
+    then
+      write_out_nvidia_gpu_operator_custom_overrides_file
+      display_nvidia_gpu_operator_custom_overrides_file
+      deploy_nvidia_gpu_operator
+      show_nvidia_gpu_operator_deployment_status
+      label_gpu_nodes
+    fi
+    verify_nvidia_gpu_operator_deployment
+  ;;
+esac
 
-if ! kubectl get pods -A | grep -q nvidia-operator-validator
-then
-  #deploy_nvidia_gpu_operator_via_the_helm_operator
-  deploy_nvidia_gpu_operator
-  show_nvidia_gpu_operator_deployment_status
-fi
-
-verify_nvidia_gpu_operator_deployment
