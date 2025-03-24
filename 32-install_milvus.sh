@@ -18,37 +18,30 @@ else
   SUSE_AI_NAMESPACE=suse-ai
   IMAGE_PULL_SECRET_NAME=application-collection
   STORAGE_CLASS_NAME=longhorn
-  MILVUS_CLUSTER_ENABLED=False
+  MILVUS_VERSION=
+  MILVUS_CLUSTER_ENABLED=false
+  MILVUS_LOGGING_LEVEL=info
+  MILVUS_LOGGING_STORAGE=emptyDir
+  
+  MILVUS_STANDALONE_MESSAGE_QUEUE=rocksmq
+
+  ####  Etcd Variables  #####
+  MILVUS_ETCD_ENABLED=true
+  MILVUS_ETCD_REPLICA_COUNT=1
 
   ####  Mineo Vairables  #####
-  MINIO_ROOT_USER=admin
-  MINIO_ROOT_USER_PASSWORD=adminminio
-  
-  #MINIO_MODE=standalone
-  #MINIO_REPLICA_COUNT=1
-  
-  MINIO_MODE=distributed
-  #Default Value: MINIO_REPLICA_COUNT=4
-  MINIO_REPLICA_COUNT=3
-  
-  #Default Value: MINIO_VOLUME_SIZE=500Gi
-  MINIO_VOLUME_SIZE=100Gi
-  
-  #Default Value: MINIO_MEMORY=1024Mi 
-  MINIO_MEMORY=4096Mi 
+  MILVUS_MINIO_ENABLED=true
+  MILVUS_MINIO_ROOT_USER=admin
+  MILVUS_MINIO_ROOT_USER_PASSWORD=adminminio
+  MILVUS_MINIO_MODE=standalone
+  MILVUS_MINIO_REPLICA_COUNT=1
+  MILVUS_MINIO_VOLUME_SIZE=100Gi
+  MILVUS_MINIO_MEMORY=4096Mi 
   
   ####  Kafka Vairables  #####
-  #Default Value: KAFKA_ENABLED=true
-  KAFKA_ENABLED=false
-  #Default Value: KAFKA_REPLICA_COUNT=3
-  KAFKA_REPLICA_COUNT=3
-  
-  #Default Value: KAFKA_VOLUME_SIZE=8Gi
-  KAFKA_VOLUME_SIZE=8Gi
-  
-  ####  Etcd Variables  #####
-  #Default Value: ETCD_REPLICA_COUNT=3
-  ETCD_REPLICA_COUNT=3
+  MILVUS_KAFKA_ENABLED=false
+  MILVUS_KAFKA_REPLICA_COUNT=3
+  MILVUS_KAFKA_VOLUME_SIZE=8Gi
 fi
 
 LICENSES_FILE=authentication_and_licenses.cfg
@@ -114,29 +107,70 @@ global:
   - ${IMAGE_PULL_SECRET_NAME}
 cluster:
   enabled: ${MILVUS_CLUSTER_ENABLED}
-standalone:
+log:
+  level: ${MILVUS_LOGGING_LEVEL}" > ${CUSTOM_OVERRIDES_FILE}
+
+  #####  logging storage values  #####
+  case ${MILVUS_LOGGING_STORAGE} in
+    storageClass)
+      echo "  persistence:
+    enabled: true
+    persistentVolumeClaim:
+      storageClass: ${STORAGE_CLASS_NAME}" >> ${CUSTOM_OVERRIDES_FILE}
+    ;;
+  esac
+
+  #####  standalone mode values  #####
+  echo "standalone:
+  messageQueue: ${MILVUS_STANDALONE_MESSAGE_QUEUE}
   persistence:
     persistentVolumeClaim:
-      storageClass: ${STORAGE_CLASS_NAME}
-etcd:
-  replicaCount: ${ETCD_REPLICA_COUNT}
+      storageClass: ${STORAGE_CLASS_NAME}" >> ${CUSTOM_OVERRIDES_FILE}
+
+  #####  ectd values  #####
+  case ${MILVUS_ETCD_ENABLED} in
+    true)
+      echo "etcd:
+  enabled: ${MILVUS_ETCD_ENABLED}
+  replicaCount: ${MILVUS_ETCD_REPLICA_COUNT}
   persistence:
-    storageClassName: ${STORAGE_CLASS_NAME}
-minio:
-  mode: ${MINIO_MODE}
-  replicas: ${MINIO_REPLICA_COUNT}
-  rootUser: ${MINIO_ROOT_USER}
-  rootPassword: ${MINIO_ROOT_USER_PASSWORD}
+    storageClassName: ${STORAGE_CLASS_NAME}" >> ${CUSTOM_OVERRIDES_FILE}
+    ;;
+    false)
+      echo "etcd:
+  enabled: ${ETCD_ENABLED}" >> ${CUSTOM_OVERRIDES_FILE}
+    ;;
+  esac
+
+  #####  MinIO values  #####
+  case ${MILVUS_MINIO_ENABLED} in
+    true)
+      echo "minio:
+  enabled: ${MILVUS_MINIO_ENABLED}
+  mode: ${MILVUS_MINIO_MODE}
+  replicas: ${MILVUS_MINIO_REPLICA_COUNT}
+  rootUser: ${MILVUS_MINIO_ROOT_USER}
+  rootPassword: ${MILVUS_MINIO_ROOT_USER_PASSWORD}
   persistence:
-    size: ${MINIO_VOLUME_SIZE}
+    size: ${MILVUS_MINIO_VOLUME_SIZE}
     storageClass: ${STORAGE_CLASS_NAME}
   resources:
     requests:
-      memory: ${MINIO_MEMORY}
-kafka:
-  enabled: ${KAFKA_ENABLED}
+      memory: ${MILVUS_MINIO_MEMORY}" >> ${CUSTOM_OVERRIDES_FILE}
+    ;;
+    false)
+      echo "minio:
+  enabled: ${MILVUS_MINIO_ENABLED}" >> ${CUSTOM_OVERRIDES_FILE}
+    ;;
+  esac
+
+  #####  Kafka values  #####
+  case ${MILVUS_KAFKA_ENABLED} in
+    true)
+      echo "kafka:
+  enabled: ${MILVUS_KAFKA_ENABLED}
   name: kafka
-  replicaCount: ${KAFKA_REPLICA_COUNT}
+  replicaCount: ${MILVUS_KAFKA_REPLICA_COUNT}
   broker:
     enabled: true
   cluster:
@@ -154,9 +188,14 @@ kafka:
     - ReadWriteOnce
     resources:
       requests:
-        storage: ${KAFKA_VOLUME_SIZE}
-    storageClassName: ${STORAGE_CLASS_NAME}
-" > ${CUSTOM_OVERRIDES_FILE}
+        storage: ${MILVUS_KAFKA_VOLUME_SIZE}
+    storageClassName: ${STORAGE_CLASS_NAME}" >> ${CUSTOM_OVERRIDES_FILE}
+    ;;
+    false)
+      echo "kafka:
+  enabled: ${MILVUS_KAFKA_ENABLED} " >> ${CUSTOM_OVERRIDES_FILE}
+    ;;
+  esac
   echo
 }
 
