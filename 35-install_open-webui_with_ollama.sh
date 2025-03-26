@@ -82,12 +82,12 @@ log_into_app_collection() {
   echo
 }
 
-install_certmanager_crds() {
-  echo
-  echo "COMMAND: kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.6.2/cert-manager.crds.yaml"
-  kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.6.2/cert-manager.crds.yaml
-  echo
-}
+#install_certmanager_crds() {
+#  echo
+#  echo "COMMAND: kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.6.2/cert-manager.crds.yaml"
+#  kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.6.2/cert-manager.crds.yaml
+#  echo
+#}
 
 create_owui_base_custom_overrides_file() {
   echo "Writing out ${CUSTOM_OVERRIDES_FILE} file ..."
@@ -95,12 +95,33 @@ create_owui_base_custom_overrides_file() {
   echo "
 global:
   imagePullSecrets:
-  - ${IMAGE_PULL_SECRET_NAME}
-persistence:
+  - ${IMAGE_PULL_SECRET_NAME}" > ${CUSTOM_OVERRIDES_FILE}
+
+  ######  TLS values  ######
+  echo "  tls:
+    source: ${OWUI_TLS_SOURCE}" >> ${CUSTOM_OVERRIDES_FILE}
+  case ${OWUI_TLS_SOURCE} in
+    letsEncrypt)
+      echo "    letsEncrypt:
+      email: ${OWUI_TLS_EMAIL}
+      environment: ${OWUI_TLS_LETSENCRYPT_ENVIRONMENT}
+      ingress:
+        class: \"${OWUI_TLS_INGRESS_CLASS}\"" >> ${CUSTOM_OVERRIDES_FILE}
+    ;;
+    secret)
+      echo "    additionalTrustedCerts: ${OWUI_TLS_ADDITIONAL_TRUSTED_CERTS}" >> ${CUSTOM_OVERRIDES_FILE}
+    ;;
+    *)
+      echo "    additionalTrustedCerts: ${OWUI_TLS_ADDITIONAL_TRUSTED_CERTS}" >> ${CUSTOM_OVERRIDES_FILE}
+    ;;
+  esac
+
+  ######  persistent storage values  ######
+  echo "persistence:
   enabled: true
   storageClass: ${STORAGE_CLASS_NAME}
 ingress:
-  host: ${WEBUI_INGRESS_HOST}" > ${CUSTOM_OVERRIDES_FILE}
+  host: ${WEBUI_INGRESS_HOST}" >> ${CUSTOM_OVERRIDES_FILE}
 }
 
 add_ollama_config_to_custom_overrides_file() {
@@ -252,7 +273,7 @@ case ${1} in
   install_only)
     check_for_kubectl
     check_for_helm
-    install_certmanager_crds
+    #install_certmanager_crds
     log_into_app_collection
     display_custom_overrides_file
     install_open_webui
@@ -260,7 +281,7 @@ case ${1} in
   without_gpu)
     check_for_kubectl
     check_for_helm
-    install_certmanager_crds
+    #install_certmanager_crds
     log_into_app_collection
     create_owui_base_custom_overrides_file
     add_ollama_config_to_custom_overrides_file
@@ -271,7 +292,7 @@ case ${1} in
   with_gpu)
     check_for_kubectl
     check_for_helm
-    install_certmanager_crds
+    #install_certmanager_crds
     log_into_app_collection
     create_owui_base_custom_overrides_file
     add_ollama_config_to_custom_overrides_file
@@ -282,7 +303,7 @@ case ${1} in
   with_gpu_and_milvus)
     check_for_kubectl
     check_for_helm
-    install_certmanager_crds
+    #install_certmanager_crds
     log_into_app_collection
     create_owui_base_custom_overrides_file
     add_ollama_config_to_custom_overrides_file
@@ -295,7 +316,7 @@ case ${1} in
   with_external_ollama_and_milvus)
     check_for_kubectl
     check_for_helm
-    install_certmanager_crds
+    #install_certmanager_crds
     log_into_app_collection
     create_owui_base_custom_overrides_file
     add_ollama_config_to_custom_overrides_file
