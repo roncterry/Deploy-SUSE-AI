@@ -95,6 +95,8 @@ install_apache2utils() {
         echo "COMMAND: ${SUDO_CMD} zypper install -y --auto-agree-with-licenses apache2-utils"
         ${SUDO_CMD} zypper install -y --auto-agree-with-licenses apache2-utils
         echo
+        echo --------------------------------------------------
+        echo
       fi
     ;;
   esac
@@ -113,6 +115,9 @@ create_observability_templates() {
 
   export OBSERVABILITY_BASECONFIG_VALUES_ARG="--values ${OBSERVABILITY_VALUES_DIR}/suse-observability-values/templates/baseConfig_values.yaml"
   export OBSERVABILITY_SIZING_VALUES_ARG="--values ${OBSERVABILITY_VALUES_DIR}/suse-observability-values/templates/sizing_values.yaml"
+
+  echo --------------------------------------------------
+  echo
 }
 
 write_out_observability_ingress_values_file() {
@@ -126,6 +131,9 @@ write_out_observability_ingress_values_file() {
           echo "Creating ${OBSERVABILITY_NAMESPACE} namespace ..."
           echo "COMMAND: kubectl create namespace ${OBSERVABILITY_NAMESPACE}"
           kubectl create namespace ${OBSERVABILITY_NAMESPACE}
+          echo
+          echo --------------------------------------------------
+          echo
         fi
 
         echo "Creating the TLS secrets ..."
@@ -137,6 +145,8 @@ write_out_observability_ingress_values_file() {
 
         echo "COMMAND: kubectl -n ${OBSERVABILITY_NAMESPACE} create secret generic tls-ca --from-file=${OBSERVABILITY_TLS_CA_FILE}"
         kubectl -n ${OBSERVABILITY_NAMESPACE} create secret generic tls-ca --from-file=${OBSERVABILITY_TLS_CA_FILE}
+        echo
+        echo --------------------------------------------------
         echo
 
         #####  Ingress  #####
@@ -157,6 +167,8 @@ ingress:
         - ${OBSERVABILITY_HOST}
       secretName: tls-ingress-secret
 " > ${OBSERVABILITY_VALUES_DIR}/suse-observability-values/templates/ingress_values.yaml
+        echo --------------------------------------------------
+        echo
       ;;
       letsEncrypt)
         #####  Namespace  #####
@@ -165,6 +177,9 @@ ingress:
           echo "Creating ${OBSERVABILITY_NAMESPACE} namespace ..."
           echo "COMMAND: kubectl create namespace ${OBSERVABILITY_NAMESPACE}"
           kubectl create namespace ${OBSERVABILITY_NAMESPACE}
+          echo
+          echo --------------------------------------------------
+          echo
         fi
 
         #####  ClusterIssuer  #####
@@ -183,7 +198,7 @@ spec:
     solvers:
       - http01:
           ingress:
-            class: nginx" >> observability-clusterissuer.yaml
+            class: nginx" > observability-clusterissuer.yaml
         echo
         cat observability-clusterissuer.yaml
         echo
@@ -193,13 +208,17 @@ spec:
         echo "COMMAND: kubectl -n ${OBSERVABILITY_NAMESPACE} apply -f observability-clusterissuer.yaml"
         kubectl -n ${OBSERVABILITY_NAMESPACE} apply -f observability-clusterissuer.yaml
         echo
+        echo --------------------------------------------------
+        echo
 
         #####  Certificate  #####
+        echo "Write out the Certificate manifest ..."
+        echo
         echo "apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
   name: observability-ingress-cert
-  namespace: default
+  namespace: ${OBSERVABILITY_NAMESPACE}
 spec:
   secretName: tls-observability-ingress
   issuerRef:
@@ -207,7 +226,7 @@ spec:
     kind: ClusterIssuer
   commonName: ${OBSERVABILITY_HOST}
   dnsNames:
-    - ${OBSERVABILITY_HOST}" >> observability-ingress-cert.yaml
+    - ${OBSERVABILITY_HOST}" > observability-ingress-cert.yaml
         echo
         cat observability-ingress-cert.yaml
         echo
@@ -226,6 +245,8 @@ spec:
         echo "Creating secret for the CA cert ..."
         echo "COMMAND: kubectl -n ${OBSERVABILITY_NAMESPACE} create secret generic tls-ca --from-file=cacerts.pem"
         kubectl -n ${OBSERVABILITY_NAMESPACE} create secret generic tls-ca --from-file=cacerts.pem
+        echo
+        echo --------------------------------------------------
         echo
 
 
@@ -250,6 +271,8 @@ ingress:
         - ${OBSERVABILITY_HOST}
       secretName: tls-observability-ingress
 " > ${OBSERVABILITY_VALUES_DIR}/suse-observability-values/templates/ingress_values.yaml
+        echo --------------------------------------------------
+        echo
       ;;
       *)
         echo "Writing out ingress values ..."
@@ -269,6 +292,8 @@ ingress:
     esac
     cat ${OBSERVABILITY_VALUES_DIR}/suse-observability-values/templates/ingress_values.yaml
     echo 
+    echo --------------------------------------------------
+    echo
 
     OBSERVABILITY_INGRESS_VALUES_ARG="--values ${OBSERVABILITY_VALUES_DIR}/suse-observability-values/templates/ingress_values.yaml"
   fi
@@ -287,8 +312,12 @@ hash_observability_admin_user_password() {
     echo "Observability admin username: ${OBSERVABILITY_ADMIN_USERNAME}"
     echo "Observability admin password: ${OBSERVABILITY_ADMIN_PASSWORD}"
     echo
+    echo --------------------------------------------------
+    echo
   else
     echo "(Using auto-generated admin password)"
+    echo
+    echo --------------------------------------------------
     echo
   fi
 }
@@ -332,6 +361,8 @@ stackstate:
     echo 
     export OBSERVABILITY_AUTH_VALUES_ARG="--values ${OBSERVABILITY_VALUES_DIR}/suse-observability-values/templates/authentication_values.yaml"
     echo
+  echo --------------------------------------------------
+  echo
   fi
 }
 
@@ -352,6 +383,9 @@ install_certmanager_for_observability() {
   echo
   echo "COMMAND: kubectl -n cert-manager rollout status deploy/cert-manager"
   kubectl -n cert-manager rollout status deploy/cert-manager
+
+  echo --------------------------------------------------
+  echo
 }
 
 install_observability() {
