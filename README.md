@@ -75,10 +75,16 @@ If you do not already have Rancher Manager deployed into a management cluster an
       ***Note 1:** Ensure that the **open-iscsi** pacakge is installed on the cluster node(s) before deploying SUSE Storage Longhorn.*
    
       ***Note 2:** SUSE Storage (Longhorn) can also be deployed onto the SUSE Observability cluster using Rancher Manager. Make sure you modify the values to change the replicas counts to `1` if it is a single node cluster when it is deployed. You can use the documentation in the common config file for reference.*
+
+4) Optinally install cert-manager into the SUSE Observability cluster. This is required if you will be using cert-manager to get certificates from Let's Encrypt. If you are using an already existing certificate or no certificate at all then you can skip this step.
+
+   a) Edit the common Observability deployment config file (`deploy_suse_observability.cfg`) and set `OBSERVABILITY_TLS_SOURCE=letsEncrypt` and `OBSERVABILITY_TLS_EMAIL` to your valid email address.
    
-4) Deploy SUSE Observability into the SUSE Observability Cluster
+   b) Run the script: `05-install_cert-manager-observability_cluster.sh`
+
+6) Deploy SUSE Observability into the SUSE Observability Cluster
    
-   a) On the first SUSE Observability cluster node run the script: `05-install_observability.sh`
+   a) On the first SUSE Observability cluster node run the script: `06-install_observability.sh`
    
    b) Retrieve the admin password from the last line of the `suse-observability-values/templates/baseConfig_values.yaml` file (unless you specified it in the `deploy_suse_observability.cfg` file, in which case you should already know it)
    
