@@ -110,6 +110,99 @@ log_into_app_collection() {
   echo
 }
 
+create_app_collection_secret() {
+  if [ -z ${APP_COLLECTION_USERNAME} ]
+  then
+    # The APP_COLLECTION_URI, APP_COLLECTION_USERNAME and APP_COLLECTION_PASSWORD
+    # variables are set in an external file and are sourced in here:
+    source ${LICENSES_FILE}
+  fi
+
+  if ! [ -z ${CERTMANAGER_NAMESPACE} ]
+  then
+    if ! kubectl get namespace | grep -q ${CERTMANAGER_NAMESPACE}
+    then
+      echo "COMMAND: kubectl create namespace ${CERTMANAGER_NAMESPACE}"
+      kubectl create namespace ${CERTMANAGER_NAMESPACE}
+      echo
+    fi
+
+    if ! kubectl -n ${CERTMANAGER_NAMESPACE} get secrets | grep -v ^NAME | awk '{ print $1 }' | grep -q ${IMAGE_PULL_SECRET_NAME}
+    then
+      echo "COMMAND: kubectl -n ${CERTMANAGER_NAMESPACE} create secret docker-registry ${IMAGE_PULL_SECRET_NAME} --docker-server=dp.apps.rancher.io --docker-username=${APP_COLLECTION_USERNAME} --docker-password=${APP_COLLECTION_PASSWORD}"
+      kubectl -n ${CERTMANAGER_NAMESPACE} create secret docker-registry ${IMAGE_PULL_SECRET_NAME} --docker-server=dp.apps.rancher.io --docker-username=${APP_COLLECTION_USERNAME} --docker-password=${APP_COLLECTION_PASSWORD}
+      echo
+      echo "-----------------------------------------------------------------------------"
+      echo
+      echo "COMMAND: kubectl -n ${CERTMANAGER_NAMESPACE} get secrets"
+      kubectl -n ${CERTMANAGER_NAMESPACE} get secrets
+      echo
+      echo "-----------------------------------------------------------------------------"
+      echo
+      echo "COMMAND: kubectl -n ${CERTMANAGER_NAMESPACE} describe secret ${IMAGE_PULL_SECRET_NAME}"
+      kubectl -n ${CERTMANAGER_NAMESPACE} describe secret ${IMAGE_PULL_SECRET_NAME}
+      echo
+      echo "-----------------------------------------------------------------------------"
+      echo
+    else
+      echo "COMMAND: kubectl -n ${CERTMANAGER_NAMESPACE} delete secret ${IMAGE_PULL_SECRET_NAME}"
+      kubectl -n ${CERTMANAGER_NAMESPACE} delete secret ${IMAGE_PULL_SECRET_NAME}
+      echo "COMMAND: kubectl -n ${CERTMANAGER_NAMESPACE} create secret docker-registry ${IMAGE_PULL_SECRET_NAME} --docker-server=dp.apps.rancher.io --docker-username=${APP_COLLECTION_USERNAME} --docker-password=${APP_COLLECTION_PASSWORD}"
+      kubectl -n ${CERTMANAGER_NAMESPACE} create secret docker-registry ${IMAGE_PULL_SECRET_NAME} --docker-server=dp.apps.rancher.io --docker-username=${APP_COLLECTION_USERNAME} --docker-password=${APP_COLLECTION_PASSWORD}
+      echo
+      echo "-----------------------------------------------------------------------------"
+      echo
+      echo "COMMAND: kubectl -n ${CERTMANAGER_NAMESPACE} get secrets"
+      kubectl -n ${CERTMANAGER_NAMESPACE} get secrets
+      echo
+      echo "-----------------------------------------------------------------------------"
+      echo
+      echo "COMMAND: kubectl -n ${CERTMANAGER_NAMESPACE} describe secret ${IMAGE_PULL_SECRET_NAME}"
+      kubectl -n ${CERTMANAGER_NAMESPACE} describe secret ${IMAGE_PULL_SECRET_NAME}
+      echo
+      echo "-----------------------------------------------------------------------------"
+      echo
+    fi
+  else
+    if ! kubectl get secrets | grep -v ^NAME | awk '{ print $1 }' | grep -q ${IMAGE_PULL_SECRET_NAME}
+    then
+      echo "COMMAND: kubectl create secret docker-registry ${IMAGE_PULL_SECRET_NAME} --docker-server=dp.apps.rancher.io --docker-username=${APP_COLLECTION_USERNAME} --docker-password=${APP_COLLECTION_PASSWORD}"
+      kubectl create secret docker-registry ${IMAGE_PULL_SECRET_NAME} --docker-server=dp.apps.rancher.io --docker-username=${APP_COLLECTION_USERNAME} --docker-password=${APP_COLLECTION_PASSWORD}
+      echo
+      echo "-----------------------------------------------------------------------------"
+      echo
+      echo "COMMAND: kubectl get secrets"
+      kubectl get secrets
+      echo
+      echo "-----------------------------------------------------------------------------"
+      echo
+      echo "COMMAND: kubectl describe secret ${IMAGE_PULL_SECRET_NAME}"
+      kubectl describe secret ${IMAGE_PULL_SECRET_NAME}
+      echo
+      echo "-----------------------------------------------------------------------------"
+      echo
+    else
+      echo "COMMAND: kubectl delete secret ${IMAGE_PULL_SECRET_NAME}"
+      kubectl delete secret ${IMAGE_PULL_SECRET_NAME}
+      echo "COMMAND: kubectl create secret docker-registry ${IMAGE_PULL_SECRET_NAME} --docker-server=dp.apps.rancher.io --docker-username=${APP_COLLECTION_USERNAME} --docker-password=${APP_COLLECTION_PASSWORD}"
+      kubectl create secret docker-registry ${IMAGE_PULL_SECRET_NAME} --docker-server=dp.apps.rancher.io --docker-username=${APP_COLLECTION_USERNAME} --docker-password=${APP_COLLECTION_PASSWORD}
+      echo
+      echo "-----------------------------------------------------------------------------"
+      echo
+      echo "COMMAND: kubectl get secrets"
+      kubectl get secrets
+      echo
+      echo "-----------------------------------------------------------------------------"
+      echo
+      echo "COMMAND: kubectl describe secret ${IMAGE_PULL_SECRET_NAME}"
+      kubectl describe secret ${IMAGE_PULL_SECRET_NAME}
+      echo
+      echo "-----------------------------------------------------------------------------"
+      echo
+    fi
+  fi
+}
+
 install_certmanager() {
   if ! [ -z ${CERTMANAGER_VERSION} ]
   then
@@ -131,6 +224,9 @@ install_certmanager() {
     echo "COMMAND: helm upgrade --install cert-manager cert-manager/cert-manager --namespace ${CERTMANAGER_NAMESPACE} --create-namespace --set crds.enabled=true ${CERTMANAGER_VER_ARG}"
     helm upgrade --install cert-manager cert-manager/cert-manager --namespace ${CERTMANAGER_NAMESPACE} --create-namespace --set crds.enabled=true ${CERTMANAGER_VER_ARG}
   else
+    log_into_app_collection
+    create_app_collection_secret
+
     echo "COMMAND: helm upgrade --install cert-manager ${CERTMANAGER_HELM_CHART} --namespace ${CERTMANAGER_NAMESPACE} --create-namespace --set 'global.imagePullSecrets[0].name'=${IMAGE_PULL_SECRET_NAME} --set crds.enabled=true ${CERTMANAGER_VER_ARG}"
     helm upgrade --install cert-manager ${CERTMANAGER_HELM_CHART} --namespace ${CERTMANAGER_NAMESPACE} --create-namespace --set 'global.imagePullSecrets[0].name'=${IMAGE_PULL_SECRET_NAME} --set crds.enabled=true ${CERTMANAGER_VER_ARG}
   fi
