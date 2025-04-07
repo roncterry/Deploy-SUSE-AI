@@ -81,7 +81,7 @@ log_into_app_collection() {
 #  echo
 #}
 
-create_owui_base_custom_overrides_file() {
+create_certmanager_base_custom_overrides_file() {
   echo "Writing out ${CUSTOM_OVERRIDES_FILE} file ..."
   echo
   echo "
@@ -120,7 +120,7 @@ install_certmanager() {
 check_for_kubectl
 check_for_helm
 log_into_app_collection
-create_owui_base_custom_overrides_file
+create_certmanager_base_custom_overrides_file
 display_custom_overrides_file
 install_certmanager
 
