@@ -80,7 +80,7 @@ If you do not already have Rancher Manager deployed into a management cluster an
 
    a) Edit the common Observability deployment config file (`deploy_suse_observability.cfg`) and set `OBSERVABILITY_TLS_SOURCE=letsEncrypt` and `OBSERVABILITY_TLS_EMAIL` to your valid email address.
    
-   b) Run the script: `05-install_cert-manager-observability_cluster.sh`
+   b) On the first SUSE Observability cluster node run the script: `05-install_cert-manager-observability_cluster.sh`
 
 6) Deploy SUSE Observability into the SUSE Observability Cluster
    
