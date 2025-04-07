@@ -16,9 +16,11 @@ then
     source ${CONFIG_FILE}
   fi
 else
-  CERTMANAGER_HELM_REPO="https://charts.jetstack.io"
+  CERTMANAGER_HELM_REPO=""
   CERTMANAGER_HELM_CHART="oci://dp.apps.rancher.io/charts/cert-manager"
   CERTMANAGER_VERSION=""
+  CERTMANAGER_NAMESPACE="cert-manager"
+
   RANCHER_HELM_REPO="https://charts.rancher.com/server-charts/prime"
   RANCHER_HOSTNAME="rancher.example.com"
   RANCHER_ADMIN_PW="rancher"
@@ -126,16 +128,16 @@ install_certmanager() {
     helm repo update
  
     echo
-    echo "COMMAND: helm upgrade --install cert-manager cert-manager/cert-manager --namespace cert-manager --create-namespace --set crds.enabled=true ${CERTMANAGER_VER_ARG}"
-    helm upgrade --install cert-manager cert-manager/cert-manager --namespace cert-manager --create-namespace --set crds.enabled=true ${CERTMANAGER_VER_ARG}
+    echo "COMMAND: helm upgrade --install cert-manager cert-manager/cert-manager --namespace ${CERTMANAGER_NAMESPACE} --create-namespace --set crds.enabled=true ${CERTMANAGER_VER_ARG}"
+    helm upgrade --install cert-manager cert-manager/cert-manager --namespace ${CERTMANAGER_NAMESPACE} --create-namespace --set crds.enabled=true ${CERTMANAGER_VER_ARG}
   else
-    echo "COMMAND: helm upgrade --install cert-manager ${CERTMANAGER_HELM_CHART} --namespace cert-manager --create-namespace --set 'global.imagePullSecrets[0].name'=${IMAGE_PULL_SECRET_NAME} --set crds.enabled=true ${CERTMANAGER_VER_ARG}"
-    helm upgrade --install cert-manager ${CERTMANAGER_HELM_CHART} --namespace cert-manager --create-namespace --set 'global.imagePullSecrets[0].name'=${IMAGE_PULL_SECRET_NAME} --set crds.enabled=true ${CERTMANAGER_VER_ARG}
+    echo "COMMAND: helm upgrade --install cert-manager ${CERTMANAGER_HELM_CHART} --namespace ${CERTMANAGER_NAMESPACE} --create-namespace --set 'global.imagePullSecrets[0].name'=${IMAGE_PULL_SECRET_NAME} --set crds.enabled=true ${CERTMANAGER_VER_ARG}"
+    helm upgrade --install cert-manager ${CERTMANAGER_HELM_CHART} --namespace ${CERTMANAGER_NAMESPACE} --create-namespace --set 'global.imagePullSecrets[0].name'=${IMAGE_PULL_SECRET_NAME} --set crds.enabled=true ${CERTMANAGER_VER_ARG}
   fi
 
   echo
-  echo "COMMAND: kubectl -n cert-manager rollout status deploy/cert-manager"
-  kubectl -n cert-manager rollout status deploy/cert-manager
+  echo "COMMAND: kubectl -n ${CERTMANAGER_NAMESPACE} rollout status deploy/cert-manager"
+  kubectl -n ${CERTMANAGER_NAMESPACE} rollout status deploy/cert-manager
 }
 
 install_rancher() {
