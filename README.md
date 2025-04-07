@@ -79,8 +79,10 @@ If you do not already have Rancher Manager deployed into a management cluster an
 4) Optinally install cert-manager into the SUSE Observability cluster. This is required if you will be using cert-manager to get certificates from Let's Encrypt. If you are using an already existing certificate or no certificate at all then you can skip this step.
 
    a) Edit the common Observability deployment config file (`deploy_suse_observability.cfg`) and set `OBSERVABILITY_TLS_SOURCE=letsEncrypt` and `OBSERVABILITY_TLS_EMAIL` to your valid email address.
+
+   b) If you want to install cert-manager from the SUSE Application Collection, on the first SUSE Observability cluster node, run the script: `05a-connect_to_app_collection-manager-observability_cluster.sh` (This is only needed if you install cert-manager from the App Collection. If you install it from somehwere else, like Jetstack, this script is not required. Where cert-manager is installed from is configured in the common Observability deployment config file.)
    
-   b) On the first SUSE Observability cluster node run the script: `05-install_cert-manager-observability_cluster.sh`
+   c) On the first SUSE Observability cluster node run the script: `05b-install_cert-manager-observability_cluster.sh`
 
 6) Deploy SUSE Observability into the SUSE Observability Cluster
    
