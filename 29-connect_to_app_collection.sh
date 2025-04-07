@@ -68,7 +68,7 @@ create_app_collection_secret() {
     source ${LICENSES_FILE}
   fi
 
-  if ! [ -z $_SUSE_AI_NAMESPACE} ]
+  if ! [ -z ${SUSE_AI_NAMESPACE} ]
   then
     if ! kubectl get namespace | grep -q ${SUSE_AI_NAMESPACE}
     then
