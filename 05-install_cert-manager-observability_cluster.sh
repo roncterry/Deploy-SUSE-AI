@@ -14,7 +14,7 @@ then
     source ${CONFIG_FILE}
   fi
 else
-  SUSE_AI_NAMESPACE=suse-ai
+  OBSERVABILITY_NAMESPACE=suse-ai
   IMAGE_PULL_SECRET_NAME=application-collection
   CERTMANAGER_VERSION=
 fi
@@ -105,12 +105,12 @@ install_certmanager() {
   echo "Installing Cert-Manager ..."
   echo "------------------------------------------------------------"
   echo
-  echo "COMMAND: helm upgrade --install cert-manager oci://dp.apps.rancher.io/charts/cert-manager --namespace ${SUSE_AI_NAMESPACE} -f ${CUSTOM_OVERRIDES_FILE} --create-namespace --set crds.enabled=true ${CM_VER_ARG}"
-  helm upgrade --install cert-manager oci://dp.apps.rancher.io/charts/cert-manager --namespace ${SUSE_AI_NAMESPACE} --create-namespace -f ${CUSTOM_OVERRIDES_FILE} --set crds.enabled=true ${CM_VER_ARG}
+  echo "COMMAND: helm upgrade --install cert-manager oci://dp.apps.rancher.io/charts/cert-manager --namespace ${OBSERVABILITY_NAMESPACE} -f ${CUSTOM_OVERRIDES_FILE} --create-namespace --set crds.enabled=true ${CM_VER_ARG}"
+  helm upgrade --install cert-manager oci://dp.apps.rancher.io/charts/cert-manager --namespace ${OBSERVABILITY_NAMESPACE} --create-namespace -f ${CUSTOM_OVERRIDES_FILE} --set crds.enabled=true ${CM_VER_ARG}
 
   echo
-  echo "COMMAND: kubectl -n ${SUSE_AI_NAMESPACE} rollout status deploy/cert-manager"
-  kubectl -n ${SUSE_AI_NAMESPACE} rollout status deploy/cert-manager
+  echo "COMMAND: kubectl -n ${OBSERVABILITY_NAMESPACE} rollout status deploy/cert-manager"
+  kubectl -n ${OBSERVABILITY_NAMESPACE} rollout status deploy/cert-manager
 
   echo
 }
