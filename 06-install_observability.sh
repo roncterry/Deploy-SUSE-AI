@@ -167,8 +167,6 @@ ingress:
         - ${OBSERVABILITY_HOST}
       secretName: tls-ingress-secret
 " > ${OBSERVABILITY_VALUES_DIR}/suse-observability-values/templates/ingress_values.yaml
-        echo --------------------------------------------------
-        echo
       ;;
       letsEncrypt)
         #####  Namespace  #####
@@ -198,7 +196,11 @@ spec:
     solvers:
       - http01:
           ingress:
-            class: nginx" > observability-clusterissuer.yaml
+            class: nginx
+            podTemplate:
+              spec:
+                imagePullSecrets:
+                - name: ${IMAGE_PULL_SECRET_NAME}" > observability-clusterissuer.yaml
         echo
         cat observability-clusterissuer.yaml
         echo
@@ -271,8 +273,6 @@ ingress:
         - ${OBSERVABILITY_HOST}
       secretName: tls-observability-ingress
 " > ${OBSERVABILITY_VALUES_DIR}/suse-observability-values/templates/ingress_values.yaml
-        echo --------------------------------------------------
-        echo
       ;;
       *)
         echo "Writing out ingress values ..."
@@ -290,6 +290,7 @@ ingress:
 " > ${OBSERVABILITY_VALUES_DIR}/suse-observability-values/templates/ingress_values.yaml
       ;;
     esac
+
     cat ${OBSERVABILITY_VALUES_DIR}/suse-observability-values/templates/ingress_values.yaml
     echo 
     echo --------------------------------------------------
@@ -307,7 +308,7 @@ hash_observability_admin_user_password() {
     export OBSERVABILITY_ADMIN_PASSWORD_HASH=$(htpasswd -bnBC 10 "" ${OBSERVABILITY_ADMIN_PASSWORD} | tr -d ':\n')
 
     sed -i "s/^    adminPassword:.*/    adminPassword: \"${OBSERVABILITY_ADMIN_PASSWORD_HASH}\"/g" ${OBSERVABILITY_VALUES_DIR}/suse-observability-values/templates/baseConfig_values.yaml
-    sed -i "s/^# Your SUSE Observability admin password is:.*/# Your SUSE Observability admin password is: ${OBSERVABILITY_ADMIN_PASSWORD}\"/g" ${OBSERVABILITY_VALUES_DIR}/suse-observability-values/templates/baseConfig_values.yaml
+    sed -i "s/^# Your SUSE Observability admin password is:.*/# Your SUSE Observability admin password is: ${OBSERVABILITY_ADMIN_PASSWORD}/g" ${OBSERVABILITY_VALUES_DIR}/suse-observability-values/templates/baseConfig_values.yaml
     echo
     echo "Observability admin username: ${OBSERVABILITY_ADMIN_USERNAME}"
     echo "Observability admin password: ${OBSERVABILITY_ADMIN_PASSWORD}"
