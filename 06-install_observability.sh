@@ -159,6 +159,7 @@ ingress:
     nginx.ingress.kubernetes.io/proxy-read-timeout: '3600'
     nginx.ingress.kubernetes.io/proxy-send-timeout: '3600'
   enabled: true
+  ingressClassName: nginx
   path: /
   hosts: 
     - host: ${OBSERVABILITY_HOST}
@@ -265,6 +266,7 @@ ingress:
     cert-manager.io/acme-challenge-type: "http01"
     cert-manager.io/acme-challenge-path: "/.well-known/acme-challenge"
   enabled: true
+  ingressClassName: nginx
   path: /
   hosts: 
     - host: ${OBSERVABILITY_HOST}
@@ -284,6 +286,7 @@ ingress:
     nginx.ingress.kubernetes.io/proxy-read-timeout: '3600'
     nginx.ingress.kubernetes.io/proxy-send-timeout: '3600'
   enabled: true
+  ingressClassName: nginx
   path: /
   hosts: 
     - host: ${OBSERVABILITY_HOST}

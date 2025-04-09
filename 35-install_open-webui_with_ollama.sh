@@ -121,6 +121,7 @@ global:
   enabled: true
   storageClass: ${STORAGE_CLASS_NAME}
 ingress:
+  class: nginx
   host: ${WEBUI_INGRESS_HOST}" >> ${CUSTOM_OVERRIDES_FILE}
 }
 

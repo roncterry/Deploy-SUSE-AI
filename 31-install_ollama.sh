@@ -132,6 +132,7 @@ with_nvidia_gpu() {
 with_ingress() {
   echo "ingress:
   enabled: true
+  className: nginx
   hosts:
   - host: ${OLLAMA_INGRESS_HOST}
     paths: 

@@ -292,8 +292,8 @@ install_rancher() {
   helm repo update
 
   echo
-  echo "COMMAND: helm upgrade --install rancher rancher-prime/rancher --namespace cattle-system --create-namespace --set hostname=${RANCHER_HOSTNAME} --set bootstrapPassword=${RANCHER_ADMIN_PW} --set replicas=${RANCHER_REPLICAS} ${RANCHER_CERT_ARGS}"
-  helm upgrade --install rancher rancher-prime/rancher --namespace cattle-system --create-namespace --set hostname=${RANCHER_HOSTNAME} --set bootstrapPassword=${RANCHER_ADMIN_PW} --set replicas=${RANCHER_REPLICAS} ${RANCHER_CERT_ARGS}
+  echo "COMMAND: helm upgrade --install rancher rancher-prime/rancher --namespace cattle-system --create-namespace --set hostname=${RANCHER_HOSTNAME} --set bootstrapPassword=${RANCHER_ADMIN_PW} --set replicas=${RANCHER_REPLICAS} ${RANCHER_CERT_ARGS} --set ingress.ingressClassName=nginx"
+  helm upgrade --install rancher rancher-prime/rancher --namespace cattle-system --create-namespace --set hostname=${RANCHER_HOSTNAME} --set bootstrapPassword=${RANCHER_ADMIN_PW} --set replicas=${RANCHER_REPLICAS} ${RANCHER_CERT_ARGS} --set ingress.ingressClassName=nginx
 
   echo
   echo "COMMAND: kubectl -n cattle-system rollout status deploy/rancher"
