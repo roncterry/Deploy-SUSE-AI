@@ -263,7 +263,7 @@ install_external_ingress_controller() {
 
   echo "Installing external ingress controller ..."
   echo
-  if ! kubectl get namespace | grep -q ingress-nginx
+  if ! kubectl get all -A | grep ingress | grep -qE '(daemonset|deployment)'
   then
     echo "COMMANDS: helm repo add ingress-nginx ${INGRESS_HELM_REPO_URL}
             helm repo update"
