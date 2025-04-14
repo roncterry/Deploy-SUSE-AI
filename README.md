@@ -11,7 +11,7 @@ The starting point for these scripts is:
   * If the OS is SL Micro follow the instructions to install the NVIDIA drivers -[Installing NVIDIA GPU Drivers on SUSE Linux Micro](https://documentation.suse.com/suse-ai/1.0/html/NVIDIA-GPU-driver-on-SL-Micro/index.html)
   * Insure the open-iscsi package is installed on the cluster nodes in preparation for SUSE Storage (Longhorn) deployment
 * DNS/hostname resolution configured to resolve the cluster name (aicluster01.example.com) to the first control plane node's IP address, or if you have an HA K8s cluster, round-robin resolving to all of the control plane nodes' IP addresses or to a VIP that has been configured for the cluster
-* Rancher Manager installed on your management cluster (this can be donw using the scripts in the **Pre-work: Install the Rancher and Observability Clusters** section below)
+* Rancher Manager installed on your management cluster (this can be done using the scripts in the **Pre-work: Install the Rancher and Observability Clusters** section below)
 * SUSE Observability installed on its own cluster (this can also be done using the scripts in the **Pre-work: Install the Rancher and Observability Clusters** section below)
 
 ## Pre-work: Install the Rancher and Observability Clusters
