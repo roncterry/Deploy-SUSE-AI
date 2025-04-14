@@ -24,7 +24,7 @@ If you do not already have Rancher Manager deployed into a management cluster an
 
 1) Deploy the Rancher Manager Cluster
 
-   a) View/edit the common Rancher deployment config file (`deploy_rancher.cfg`) and make any changes needed such as the hostname, admin password, number of replicas counts (for single node clusters leave all of the replica counts at `1`), TLS configuration (self-signed, Let's Encrypt, secret), etc.
+   a) View/edit the common Rancher deployment config file (`deploy_rancher.cfg`) and make any changes needed such as the hostname, admin password, number of replicas counts (for single node clusters leave all of the replica counts set to `1`), TLS configuration (self-signed, Let's Encrypt, secret), etc.
 
    b) On the first Rancher Manager cluster node, the one that will be the (1st) control plan node, run the script (***Note:** This script requires root privileges*): `01a-install_first_rke2_server-rancher_cluster.sh` 
 
@@ -44,7 +44,7 @@ If you do not already have Rancher Manager deployed into a management cluster an
 
 1) Deploy the SUSE Observability Cluster
 
-   a) View/edit the common Observability deployment config file (`deploy_suse_observability.cfg`) and make any changes needed such as the number of replicas counts (for single node clusters leave all of the replica counts at `1`)
+   a) View/edit the common Observability deployment config file (`deploy_suse_observability.cfg`) and make any changes needed such as the number of replicas counts (for single node clusters leave all of the replica counts set to `1`)
 
    b) Edit the `authentication_and_licenses.cfg` file to add your Observability license key. (***Note:** you can also add your SUSE Application Collection service account or access token info at the same time*)
    
@@ -100,7 +100,7 @@ If you do not already have Rancher Manager deployed into a management cluster an
 
 Do the following to deploy the SUSE AI stack:
 
-1) View/edit the common SUSE AI deployment config file (`deploy_suse_ai.cfg`) to make any changes needed such as replica counts (for single node clusters leave all of the replica counts at `1`)
+1) View/edit the common SUSE AI deployment config file (`deploy_suse_ai.cfg`) to make any changes needed such as replica counts (for single node clusters leave all of the replica counts set to `1`)
 
 2) Ensure the NVIDIA Driver and Compute Utils are Installed on the Nodes with a GPU
 
