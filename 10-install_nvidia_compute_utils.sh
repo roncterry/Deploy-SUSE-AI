@@ -24,7 +24,7 @@ esac
 ##############################################################################
 
 check_for_nvidia_gpu() {
-  if lspci | grep -i nvidia | grep -qi vga 
+  if lspci | grep -i nvidia
   then
     HAS_NVIDIA_GPU=yes
   elif echo ${*} | grep -q force
