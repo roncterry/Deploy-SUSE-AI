@@ -19,8 +19,8 @@ else
   STORAGE_CLASS_NAME=longhorn
   
   OLLAMA_INGRESS_HOST=ollama.example.com
-  OLLAMA_MODEL_0=llama3.2
-  OLLAMA_MODEL_1=gemma:2b
+  OLLAMA_MODEL_0=llama3.2:2b
+  OLLAMA_MODEL_1=gemma2:2b
   OLLAMA_MODEL_2=
   OLLAMA_MODEL_3=
   OLLAMA_MODEL_4=
@@ -91,7 +91,6 @@ persistence:
   enabled: true
   storageClass: ${STORAGE_CLASS_NAME}
 ollama:
-  defaultModel: ${OLLAMA_MODEL_0}
   models:
     pull:" > ${CUSTOM_OVERRIDES_FILE}
 
