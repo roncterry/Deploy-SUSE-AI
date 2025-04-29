@@ -131,8 +131,7 @@ add_ollama_config_to_custom_overrides_file() {
 
   case ${OWUI_OLLAMA_ENABLED} in
     True|true|TRUE)
-      echo "  defaultModel: ${OLLAMA_MODEL_0}
-  ollama:
+      echo "  ollama:
     models:
       pull:" >> ${CUSTOM_OVERRIDES_FILE}
 
