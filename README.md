@@ -76,7 +76,7 @@ If you do not already have Rancher Manager deployed into a management cluster an
    
       ***Note 2:** SUSE Storage (Longhorn) can also be deployed onto the SUSE Observability cluster using Rancher Manager. Make sure you modify the values to change the replicas counts to `1` if it is a single node cluster when it is deployed. You can use the documentation in the common config file for reference.*
 
-4) Optinally install cert-manager into the SUSE Observability cluster. This is required if you will be using cert-manager to get certificates from Let's Encrypt. If you are using an already existing certificate or no certificate at all then you can skip this step.
+4) Optionally install cert-manager into the SUSE Observability cluster. This is required if you will be using cert-manager to get certificates from Let's Encrypt. If you are using an already existing certificate or no certificate at all then you can skip this step.
 
    a) Edit the common Observability deployment config file (`deploy_suse_observability.cfg`) and set `OBSERVABILITY_TLS_SOURCE=letsEncrypt` and `OBSERVABILITY_TLS_EMAIL` to your valid email address.
 
@@ -84,7 +84,7 @@ If you do not already have Rancher Manager deployed into a management cluster an
    
    c) On the first SUSE Observability cluster node run the script: `05b-install_cert-manager-observability_cluster.sh`
 
-6) Deploy SUSE Observability into the SUSE Observability Cluster
+5) Deploy SUSE Observability into the SUSE Observability Cluster
    
    a) On the first SUSE Observability cluster node run the script: `06-install_observability.sh`
    
@@ -93,6 +93,10 @@ If you do not already have Rancher Manager deployed into a management cluster an
    c) In a web browser go to the SUSE Observability web UI and log in as the "admin" user with the password retrieved from the file in the previous step
 
    d) Follow the steps here in the section titled **Accessing SUSE Observability** [here](https://docs.stackstate.com/get-started/k8s-suse-rancher-prime) to integrate SUSE Observability with Rancher Manager (***Note:** This requires a valid, non self-signed, certificate for the Observability cluster*)
+
+6) While logged into the Observability web UI enable the OpenTelemetry Stack Pack
+
+   Hamburger menu (top left) --> StackPacks --> OpenTelementry --> Install
 
 ***Tip:** The SUSE Observability cluster deployment can be done using a single `quick_deploy` script. See the **Quick Deploy Scripts** section at the end of this document.*
 
@@ -150,15 +154,23 @@ Do the following to deploy the SUSE AI stack:
 
    ***Note:** If the cluster has been imported into Rancher Manager SUSE Security (NeuVector) can also be deployed onto the AI cluster using Rancher Manager. Make sure you modify the values to change the replicas counts to `1` if it is a single node cluster when it is deployed. You can use the documentation in the common config file for reference.*
 
-8) Install the SUSE Observability Agent into the AI Cluster
+8) Install the OpenTelemetry Collector into the AI cluster
 
-   Follow the instructions in the section titled **Installing the SUSE Observability Agent** [here](https://docs.stackstate.com/get-started/k8s-suse-rancher-prime)
+   On your management machine, or any of the downstream AI cluster nodes that have the `kubectl` and `helm` commands installed, run the script: `41-install_opentelemetry_collector.sh`
    
-9) Configure Access to the SUSE Application Collection
+9) Install the SUSE Observability Agent into the AI Cluster
 
-   a) Edit the `authentication_and_licenses.cfg` file to add your SUSE Application Collection service account or access token (if you didn't already add it above when adding the Observability license key)
+   Follow the instructions in the section titled **Installing the SUSE Observability Agent** [here](https://docs.stackstate.com/get-started/k8s-suse-rancher-prime) 
 
-   b) On your management machine, or any of the downstream AI cluster nodes that have the `kubectl` and `helm` commands installed, run the script: `29-connect_to_app_collection.sh`
+   or
+   
+   If the Kubernetes StackPack has be enabled (and an instance created for the AI cluster) and the OpenTelemetry StackPack has been enabled in Observability, the receiver API key can be retrieved and added to the `OBSERVABILITY_RECEIVER_API_KEY` variable and the Observability server FQDN can added to the `OBSERVABILITY_HOST` variable in the `deploy_suse_ai.cfg` file. Then run the following script on your management machine (or any of the downstream AI cluster nodes that have the `kubectl` and `helm` commands installed) to install the Observabilty agent into the AI cluster: `42-install_observability_agent.sh`
+   
+10) Configure Access to the SUSE Application Collection
+
+    a) Edit the `authentication_and_licenses.cfg` file to add your SUSE Application Collection service account or access token (if you didn't already add it above when adding the Observability license key)
+   
+    b) On your management machine, or any of the downstream AI cluster nodes that have the `kubectl` and `helm` commands installed, run the script: `29-connect_to_app_collection.sh`
 
 At this point the base set of applications is installed on the downstream AI cluster. You can now use the following scripts to deploy the AI stack applications. These scripts can be run on your management machine or any of the downstream AI cluster nodes that have the `kubectl` and `helm` commands installed.
 
