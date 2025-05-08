@@ -433,14 +433,14 @@ usage() {
   echo "USAGE: ${0} [templates_only|install_only]"
   echo 
   echo "Options: "
-  echo "    custom_overrides_only  (only write out the ${CUSTOM_OVERRIDES_FILE} file)"
-  echo "    install_only           (only run an install using an existing ${CUSTOM_OVERRIDES_FILE} file)"
+  echo "    templates_only (only write out the values files created from the templates)"
+  echo "    install_only   (only run an install using an existing values files created from the templates)"
   echo
-  echo "If no option is supplied the ${CUSTOM_OVERRIDES_FILE} file is created and"
-  echo "is used to perform an installation using 'helm upgrade --install'."
+  echo "If no option is supplied the va;lues files are created from the templates"
+  echo "and are used to perform an installation using 'helm upgrade --install'."
   echo
   echo "Example: ${0}"
-  echo "         ${0} custom_overrides_only"
+  echo "         ${0} templates_only"
   echo "         ${0} install_only"
   echo 
 }
