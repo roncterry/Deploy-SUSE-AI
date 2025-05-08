@@ -20,6 +20,8 @@ else
   LH_DEFAULT_CLASS_REPLICA_COUNT=1
   LH_CSI_REPLICA_COUNT=1
   LH_RESERVED_DISK_PERCENTAGE=15
+  LH_DEFAULT_SC_FS_TYPE=ext4
+  LH_ADDITIONAL_SC_LIST=
 fi
 
 if [ -z ${LH_URL} ]
@@ -114,6 +116,7 @@ defaultSettings:
   storageReservedPercentageForDefaultDisk: ${LH_RESERVED_DISK_PERCENTAGE}
 persistence:
   defaultClassReplicaCount: ${LH_DEFAULT_CLASS_REPLICA_COUNT}
+  defaultFsType: ${LH_DEFAULT_SC_FS_TYPE}
 csi:
   attacherReplicaCount: ${LH_CSI_REPLICA_COUNT}
   provisionerReplicaCount: ${LH_CSI_REPLICA_COUNT}
@@ -187,21 +190,72 @@ deploy_longhorn() {
   echo "COMMAND: kubectl -n longhorn-system rollout status deploy/csi-snapshotter"
   kubectl -n longhorn-system rollout status deploy/csi-snapshotter
   echo
+}
 
+display_storage_classes() {
   echo "-----------------------------------------------------------------------------"
   echo
   echo "COMMAND: kubectl get storageclasses"
   kubectl get storageclasses
   echo
 
-  echo "-----------------------------------------------------------------------------"
-  echo
-  echo "COMMAND: kubectl describe storageclasses longhorn"
-  kubectl describe storageclasses longhorn
-  echo 
+  for STORAGECLASS in $(kubectl get storageclasses | grep -v ^NAME | awk '{ print $1 }')
+  do
+    echo "-----------------------------------------------------------------------------"
+    echo
+    echo "COMMAND: kubectl describe storageclasses ${STORAGECLASS}"
+    kubectl describe storageclasses ${STORAGECLASS}
+    echo 
+    echo "-----------------------------------------------------------------------------"
+    echo
+  done
+}
 
-  echo "-----------------------------------------------------------------------------"
-  echo
+create_additional_storageclasses() {
+  local SC_NAME_PREFIX=longhorn
+
+  if ! [ -z ${LH_ADDITIONAL_SC_LIST} ]
+  then
+    for SC in ${LH_ADDITIONAL_SC_LIST}
+    do
+      local SC_NAME=$(echo ${SC} | cut -d , -f 1)
+      local FS_TYPE=$(echo ${SC} | cut -d , -f 2)
+      local NUM_REPLICAS=$(echo ${SC} | cut -d , -f 3)
+
+      if [ -z ${NUM_REPLICAS} ]
+      then
+        NUM_REPLICAS=3
+      fi
+
+      echo "Writing out StoragecCass manifest: ${SC_NAME}"
+      echo
+      echo "apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: ${SC_NAME}
+provisioner: driver.longhorn.io
+allowVolumeExpansion: true
+reclaimPolicy: Delete
+volumeBindingMode: Immediate
+parameters:
+  numberOfReplicas: \"${NUM_REPLICAS}\"
+  staleReplicaTimeout: \"30\"
+  fromBackup: 
+  fsType: \"${FS_TYPE}\"
+  dataLocality: \"disabled\"
+  unmapMarkSnapChainRemoved: \"ignored\" " > ${SC_NAME}.yaml
+
+      echo
+      cat ${SC_NAME}.yaml
+      echo
+
+      echo "Creating storage class: ${SC_NAME}"
+      echo
+      echo "COMMAND: kubectl apply -f ${SC_NAME}.yaml"
+      kubectl apply -f ${SC_NAME}.yaml
+      echo
+    done
+  fi
 }
 
 create_longhorn_ingress_secret() {
@@ -292,6 +346,8 @@ case ${1} in
     check_for_helm
     display_custom_overrides_file
     deploy_longhorn
+    create_additional_storageclasses
+    display_storage_classes
   ;;
   help|-h|--help)
     usage
@@ -304,6 +360,8 @@ case ${1} in
     write_out_longhorn_custom_overrides_file
     display_custom_overrides_file
     deploy_longhorn
+    create_additional_storageclasses
+    display_storage_classes
   ;;
 esac
 

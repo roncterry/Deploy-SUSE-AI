@@ -165,6 +165,11 @@ log:
   esac
 
   #####  Kafka values  #####
+  if [ -z ${MILVUS_KAFKA_STORAGE_CLASS_NAME} ]
+  then
+    MILVUS_KAFKA_STORAGE_CLASS_NAME=${STORAGE_CLASS_NAME}
+  fi
+
   case ${MILVUS_KAFKA_ENABLED} in
     true)
       echo "kafka:
@@ -189,7 +194,7 @@ log:
     resources:
       requests:
         storage: ${MILVUS_KAFKA_VOLUME_SIZE}
-    storageClassName: ${STORAGE_CLASS_NAME}" >> ${CUSTOM_OVERRIDES_FILE}
+    storageClassName: ${MILVUS_KAFKA_STORAGE_CLASS_NAME}" >> ${CUSTOM_OVERRIDES_FILE}
     ;;
     false)
       echo "kafka:
