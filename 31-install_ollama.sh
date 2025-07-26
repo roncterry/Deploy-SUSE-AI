@@ -122,10 +122,11 @@ ollama:
 
 with_nvidia_gpu() {
   echo "  gpu:
-    enabled: true
-    type: nvidia
-    number: 1
-  runtimeClassName: nvidia " >> ${CUSTOM_OVERRIDES_FILE}
+    enabled: ${OLLAMA_GPU_ENABLED}
+    type: ${OLLAMA_GPU_TYPE}
+    number: ${OLLAMA_GPU_NUMBER}
+    nvidiaResource: ${OLLAMA_GPU_NVIDIA_RESOURCE}
+  runtimeClassName: ${OLLAMA_RUNTIMECLASSNAME}" >> ${CUSTOM_OVERRIDES_FILE}
 }
 
 with_ingress() {

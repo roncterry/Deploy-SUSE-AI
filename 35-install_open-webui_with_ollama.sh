@@ -171,9 +171,10 @@ add_nvidia_gpu_to_custom_overrides_file() {
   case ${OWUI_OLLAMA_ENABLED} in
     True|true|TRUE)
       echo "    gpu:
-      enabled: true
-      type: nvidia
-      number: 1
+      enabled: ${OLLAMA_GPU_ENABLED}
+      type: ${OLLAMA_GPU_TYPE}
+      number: ${OLLAMA_GPU_NUMBER}
+      nvidiaResource: ${OLLAMA_GPU_NVIDIA_RESOURCE}
     runtimeClassName: nvidia" >> ${CUSTOM_OVERRIDES_FILE}
     ;;
   esac

@@ -207,7 +207,7 @@ label_gpu_nodes() {
       echo GPU_NODE=false
       echo
       echo "Note: If you think this is incorrect it may be because the metadata labels"
-      echo"       may not have been updated yet."
+      echo "      may not have been updated yet."
       echo "      Wait about 10-15 seconds and run this script again with the 'label_only'"
       echo "      argument to attempt the labeling of the GPU nodes again."
       echo
