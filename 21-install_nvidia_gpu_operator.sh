@@ -277,15 +277,66 @@ verify_nvidia_gpu_operator_deployment() {
 done
 }
 
+write_out_gpu_time_slicing_config() {
+  echo "Writing out nvidia-gpu-time-slicing-config.yaml ..."
+  echo
+  echo "apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: time-slicing-config
+  namespace: gpu-operator
+data:
+  any: |-
+    version: v1
+    sharing:
+      timeSlicing:
+        resources:
+        - name: nvidia.com/gpu
+          replicas: ${NVIDIA_GPU_TIMESLICE_REPLICAS}
+" > nvidia-gpu-time-slicing-config.yaml
+  echo
+  cat nvidia-gpu-time-slicing-config.yaml
+  echo
+}
+
+enable_nvidia_gpu_timeslicing() {
+  echo "Enabling NVIDIA GPU Time Slicing ..."
+  echo
+
+  if [ -e nvidia-gpu-time-slicing-config.yaml ]
+  then
+    echo "COMMAND: kubectl -n gpu-operator apply -f nvidia-gpu-time-slicing-config.yaml"
+    kubectl -n gpu-operator apply -f nvidia-gpu-time-slicing-config.yaml
+    echo
+  else
+    echo "nvidia-gpu-time-slicing-config.yaml does not exist. Skipping ..."
+    echo
+  fi
+
+  local GPU_CLUSTER_POLICY_NAME=$(kubectl -n gpu-operator get clusterpolicies.nvidia.com | grep policy | awk '{ print $1 }')
+
+  if ! kubectl -n gpu-operator describe clusterpolicies cluster-policy | grep -q time-slicing-config
+  then
+    echo "COMMAND: kubectl -n gpu-operator patch clusterpolicies/cluster-policy --type=merge --patch '{\"spec\": {\"devicePlugin\": {\"config\": {\"name\": \"time-slicing-config\", \"default\": \"any\"}}}}'"
+    kubectl -n gpu-operator patch clusterpolicies/cluster-policy --type=merge --patch '{"spec": {"devicePlugin": {"config": {"name": "time-slicing-config", "default": "any"}}}}'
+    echo
+  fi
+  
+  kubectl describe nodes | grep "^  nvidia.com/gpu:" | head -1
+  echo
+}
+
 usage() {
   echo
-  echo "USAGE: ${0} [custom_overrides_only|install_only|label_nodes_only|verify_only]"
+  echo "USAGE: ${0} [custom_overrides_only|install_only|label_nodes_only|verify_only|configure_time_slicing_only]"
   echo
   echo "Options: "
-  echo "    custom_overrides_only  (only write out the ${CUSTOM_OVERRIDES_FILE} file)"
-  echo "    install_only           (only run an install using an existing ${CUSTOM_OVERRIDES_FILE} file)"
-  echo "    label_nodes_only       (only label the GPU nodes)"
-  echo "    verify_only            (only display verification of the GPU nodes)"
+  echo "    custom_overrides_only       (only write out the ${CUSTOM_OVERRIDES_FILE} file)"
+  echo "    install_only                (only run an install using an existing ${CUSTOM_OVERRIDES_FILE} file)"
+  echo "    label_nodes_only            (only label the GPU nodes)"
+  echo "    verify_only                 (only display verification of the GPU nodes)"
+  echo "    with_time_slicing           (install with GPU time slicing)"
+  echo "    configure_time_slicing_only (only configure GPU timeslicing)"
   echo
   echo "If no option is supplied the ${CUSTOM_OVERRIDES_FILE} file is created and"
   echo "is used to perform an installation using 'helm upgrade --install'."
@@ -295,6 +346,8 @@ usage() {
   echo "         ${0} install_only"
   echo "         ${0} label_nodes_only"
   echo "         ${0} verify_only"
+  echo "         ${0} with_time_slicing"
+  echo "         ${0} configue_time_slicing_only"
   echo
 }
 
@@ -309,6 +362,10 @@ case ${1} in
     write_out_nvidia_gpu_operator_custom_overrides_file
     display_nvidia_gpu_operator_custom_overrides_file
   ;;
+  configure_time_slicing_only)
+    write_out_gpu_time_slicing_config
+    enable_nvidia_gpu_timeslicing
+  ;;
   #-----
   install_only)
     check_for_kubectl
@@ -321,6 +378,8 @@ case ${1} in
       label_gpu_nodes
     fi
     verify_nvidia_gpu_operator_deployment
+    write_out_gpu_time_slicing_config
+    enable_nvidia_gpu_timeslicing
   ;;
   install_only_via_helm_operator)
     check_for_kubectl
@@ -332,6 +391,8 @@ case ${1} in
       label_gpu_nodes
     fi
     verify_nvidia_gpu_operator_deployment
+    write_out_gpu_time_slicing_config
+    enable_nvidia_gpu_timeslicing
   ;;
   #-----
   via_helm_operator)
@@ -345,6 +406,8 @@ case ${1} in
       label_gpu_nodes
     fi
     verify_nvidia_gpu_operator_deployment
+    write_out_gpu_time_slicing_config
+    enable_nvidia_gpu_timeslicing
   ;;
   #-----
   label_nodes_only)
@@ -361,6 +424,21 @@ case ${1} in
     then
       verify_nvidia_gpu_operator_deployment
     fi
+  ;;
+  with_time_slicing)
+    check_for_kubectl
+    check_for_helm
+    if ! kubectl get pods -A | grep -q nvidia-operator-validator
+    then
+      write_out_nvidia_gpu_operator_custom_overrides_file
+      display_nvidia_gpu_operator_custom_overrides_file
+      deploy_nvidia_gpu_operator
+      show_nvidia_gpu_operator_deployment_status
+      label_gpu_nodes
+    fi
+    verify_nvidia_gpu_operator_deployment
+    write_out_gpu_time_slicing_config
+    enable_nvidia_gpu_timeslicing
   ;;
   help|-h|--help)
     usage
