@@ -80,6 +80,22 @@ install_nvidia_compute_utils() {
   echo
 }
 
+install_nvidia_datacenter_gpu_manager() {
+  CUDA_VERSION=$(nvidia-smi | grep -o "CUDA Version: [0-9]*.[0-9]" | cut -d : -f 2 | sed 's/^.//g '| cut -d . -f 1)
+
+  echo "Installing datacenter-gpu-manager-4-cuda${CUDA_VERSION} ..."
+  echo "---------------------------------------------------------------------------"
+  echo "COMMAND: ${SUDO_CMD} zypper install -y --auto-agree-with-licenses datacenter-gpu-manager-4-cuda${CUDA_VERSION}"
+  ${SUDO_CMD} zypper install -y --auto-agree-with-licenses datacenter-gpu-manager-4-cuda${CUDA_VERSION}
+  echo
+  echo "COMMAND: ${SUDO_CMD} systemctl enable --now nvidia-dcgm"
+  ${SUDO_CMD} systemctl enable --now nvidia-dcgm
+  echo
+  echo "COMMAND: ${SUDO_CMD} dcgm health -s a"
+  ${SUDO_CMD} dcgm health -s a
+  echo
+}
+
 install_nvidia_driver_and_compute_utils() {
   if [ "${HAS_NVIDIA_GPU}" == yes ] || [ "${HAS_NVIDIA_GPU}" == force ] 
   then
@@ -96,6 +112,8 @@ install_nvidia_driver_and_compute_utils() {
       ;;
     esac
 
+    ## Install Driver and COmpute Utils
+    ##------------------------------------------------------------------------
     if ! zypper se nvidia-compute-utils-${NVIDIA_DRV_FAMILY} | grep -q ^i
     then
       case ${NAME} in
@@ -146,30 +164,58 @@ install_nvidia_driver_and_compute_utils() {
       echo "nvidia-compute-utils-${NVIDIA_DRV_FAMILY} already installed, continuing ..."
       echo
     fi
+    ##------------------------------------------------------------------------
+
+    ## Install, Enable and Start DCGM
+    ##------------------------------------------------------------------------
+    if ! zypper se datacenter-gpu-manager-4-cuda${CUDA_VERSION}  | grep -v debug | grep -q ^i
+    then
+      case ${NAME} in
+        SLES)
+          install_nvidia_datacenter_gpu_manager
+          echo
+        ;;
+      esac
+    else
+      echo "datacenter-gpu-manager-4-cuda${CUDA_VERSION} already installed, continuing ..."
+      echo
+    fi
+
+    if ! systemctl status nvidia-dcgm.service | grep -q enabled
+    then
+      echo "COMMAND: ${SUDO_CMR} systemctl enable --now nvidia-dcgm.service"
+      ${SUDO_CMR} systemctl enable --now nvidia-dcgm.service
+      echo
+    fi
+    ##------------------------------------------------------------------------
  
-    case ${NAME} in
-      SLES)
-        if ! [ -e /sbin/ldconfig.real ]
-        then
-          echo "COMMAND: ${SUDO_CMD} ln -s /sbin/ldconfig /sbin/ldconfig.real"
-          ${SUDO_CMD} ln -s /sbin/ldconfig /sbin/ldconfig.real
-          echo
-        else
-          echo
-          echo "/sbin/ldconfig.real exists, continuing ..."
-          echo
-        fi
-  
-        if ! grep -q "^PATH" /etc/default/rke2-server 2>/dev/null
-        then
-          echo "COMMAND: ${SUDO_CMD} echo PATH=${PATH} >> /etc/default/rke2-server"
-          ${SUDO_CMD} echo PATH=${PATH} >> /etc/default/rke2-server
-          echo
-        else
-          echo
-          echo "/etc/default/rke2-server contains a line beginning with PATH, continuing ..."
-          echo
-        fi
+    case ${NVIDIA_GPU_ENABLE_DCGM} in
+      True|true)
+        case ${NAME} in
+          SLES)
+            if ! [ -e /sbin/ldconfig.real ]
+            then
+              echo "COMMAND: ${SUDO_CMD} ln -s /sbin/ldconfig /sbin/ldconfig.real"
+              ${SUDO_CMD} ln -s /sbin/ldconfig /sbin/ldconfig.real
+              echo
+            else
+              echo
+              echo "/sbin/ldconfig.real exists, continuing ..."
+              echo
+            fi
+      
+            if ! grep -q "^PATH" /etc/default/rke2-server 2>/dev/null
+            then
+              echo "COMMAND: ${SUDO_CMD} echo PATH=${PATH} >> /etc/default/rke2-server"
+              ${SUDO_CMD} echo PATH=${PATH} >> /etc/default/rke2-server
+              echo
+            else
+              echo
+              echo "/etc/default/rke2-server contains a line beginning with PATH, continuing ..."
+              echo
+            fi
+          ;;
+        esac
       ;;
     esac
   fi
