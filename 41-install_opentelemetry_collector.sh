@@ -22,7 +22,7 @@ fi
 
 #LICENSES_FILE=authentication_and_licenses.cfg
 
-CUSTOM_OVERRIDES_FILE=otc_custom_overrides.yaml
+CUSTOM_OVERRIDES_FILE=otel_custom_overrides.yaml
 
 ##############################################################################
 #   Functions
@@ -63,9 +63,6 @@ check_for_helm() {
 ##############################################################################
 
 create_otel_secret() {
-  echo "Creating Secret for the OpenTelemetry Collector ..."
-  echo "------------------------------------------------------------"
-
   if ! [ -z ${OTEL_NAMESPACE} ]
   then
     if ! kubectl get namespace | grep -q ${OTEL_NAMESPACE}
@@ -233,6 +230,42 @@ display_custom_overrides_file() {
   echo
 }
 
+create_otel_rbac_manifest() {
+  echo "Writing out otel-rbac.yaml file ..."
+  echo
+  echo "
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: suse-observability-otel-scraper
+rules:
+  - apiGroups:
+      - ""
+    resources:
+      - services
+      - endpoints
+    verbs:
+      - list
+      - watch
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: suse-observability-otel-scraper
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: suse-observability-otel-scraper
+subjects:
+  - kind: ServiceAccount
+    name: opentelemetry-collector
+    namespace: observability
+  " > otel-rbac.yaml
+  echo
+  cat otel-rbac.yaml
+}
+
 install_opentelemetry_collector() {
   if ! [ -z ${OTEL_VERSION} ]
   then
@@ -256,6 +289,14 @@ install_opentelemetry_collector() {
   echo
   echo "COMMAND: kubectl -n ${OTEL_NAMESPACE} rollout status deploy/opentelemetry-collector"
   kubectl -n ${OTEL_NAMESPACE} rollout status deploy/opentelemetry-collector
+}
+
+configure_otel_rbac() {
+  echo "Configuring OpenTelemetry RBAC ..."
+  echo
+  echo "COMMAND: kubectl apply -n gpu-operator -f otel-rbac.yam"l
+  kubectl apply -n gpu-operator -f otel-rbac.yaml
+  echo
 }
 
 
@@ -284,12 +325,14 @@ case ${1} in
     check_for_helm
     create_otel_custom_overrides_file
     display_custom_overrides_file
+    create_otel_rbac_manifest
   ;;
   install_only)
     check_for_kubectl
     check_for_helm
     create_otel_secret
     install_opentelemetry_collector
+    configure_otel_rbac
   ;;
   help|-h|--help)
     usage
@@ -302,6 +345,8 @@ case ${1} in
     create_otel_custom_overrides_file
     display_custom_overrides_file
     install_opentelemetry_collector
+    create_otel_rbac_manifest
+    configure_otel_rbac
   ;;
 esac
 
