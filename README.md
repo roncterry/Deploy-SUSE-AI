@@ -148,17 +148,21 @@ Do the following to deploy the SUSE AI stack:
 
    ***Note 2:** If the cluster has been imported into Rancher Manager SUSE Storage (Longhorn) can also be deployed onto the AI cluster using Rancher Manager. Make sure you modify the values to change the replicas counts to `1` if it is a single node cluster when it is deployed. You can use the documentation in the common config file for reference.*
 
-7) Install SUSE Security (NueVector)
+7) Install Cert-Manager
+
+   On your management machine, or any of the downstream AI cluster nodes that have the `kubectl` and `helm` commands installed, run the script: `23-install_cert-manager.sh`
+
+8) Install SUSE Security (NueVector)
    
    On your management machine, or any of the downstream AI cluster nodes that have the `kubectl` and `helm` commands installed, run the script: `25-install_suse_security.sh`
 
    ***Note:** If the cluster has been imported into Rancher Manager SUSE Security (NeuVector) can also be deployed onto the AI cluster using Rancher Manager. Make sure you modify the values to change the replicas counts to `1` if it is a single node cluster when it is deployed. You can use the documentation in the common config file for reference.*
 
-8) Install the OpenTelemetry Collector into the AI cluster
+9) Install the OpenTelemetry Collector into the AI cluster
 
    On your management machine, or any of the downstream AI cluster nodes that have the `kubectl` and `helm` commands installed, run the script: `41-install_opentelemetry_collector.sh`
    
-9) Install the SUSE Observability Agent into the AI Cluster
+10) Install the SUSE Observability Agent into the AI Cluster
 
    Follow the instructions in the section titled **Installing the SUSE Observability Agent** [here](https://docs.stackstate.com/get-started/k8s-suse-rancher-prime) 
 
@@ -166,7 +170,7 @@ Do the following to deploy the SUSE AI stack:
    
    If the Kubernetes StackPack has be enabled (and an instance created for the AI cluster) and the OpenTelemetry StackPack has been enabled in Observability, the receiver API key can be retrieved and added to the `OBSERVABILITY_RECEIVER_API_KEY` variable and the Observability server FQDN can added to the `OBSERVABILITY_HOST` variable in the `deploy_suse_ai.cfg` file. Then run the following script on your management machine (or any of the downstream AI cluster nodes that have the `kubectl` and `helm` commands installed) to install the Observabilty agent into the AI cluster: `42-install_observability_agent.sh`
    
-10) Configure Access to the SUSE Application Collection
+11) Configure Access to the SUSE Application Collection
 
     a) Edit the `authentication_and_licenses.cfg` file to add your SUSE Application Collection service account or access token (if you didn't already add it above when adding the Observability license key)
    
@@ -178,7 +182,6 @@ At this point the base set of applications is installed on the downstream AI clu
 |-------------|-------------|
 |`31-install_ollama.sh` | This installs only Ollama. Do this if you want to deploy the AI stack in a more modular fashion or are not going to use Open WebUI. <br>You must supply one of the following arguments to the script: `without_gpu` (installs Ollama without GPU support - you probably don't want this), `with_gpu`  (Installs Ollama with GPU support), `with_gpu_and_ingress`  (Installs Ollama with GPU support and configures an ingress allowing direct communication with Ollama) |
 |`32-install_milvus.sh` | This installs Milvus on the AI cluster. Do this if you want to use the Milvus vector database in conjunction with Open WebUI. (*Note: The script `91-clean_up_milvus_PVCs.sh` can be used if you uninstall the Milvus deployment using Helm and want to remove the volumes that were created - they don't get removed automatically when uninstalling the deployment.*) |
-|`34-install_cert-manager.sh` | This installs Cert-Manager which is required by Open WebUI |
 |`35-install_open-webui_with_ollama.sh` | This installs Ollama and then Open WebUI. (You **do not** need to install Ollama before running this because this chart will install both Ollama and Open WebUI.) <br>You must supply one of the following arguments to the script: `without_gpu` (installs Ollama without GPU support and a single model and installs Open WebUI - you probably don't want this), `with_gpu ` (Installs Ollama with GPU support and a single model and installs Open WebUI),`with_gpu_and_milvus`  (Installs Ollama with GPU support and configures Ollaman and Open WebUI to use Milvus) |
 
 ## Uninstall the SUSE AI Stack
