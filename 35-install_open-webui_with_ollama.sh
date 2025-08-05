@@ -180,6 +180,17 @@ add_nvidia_gpu_to_custom_overrides_file() {
   esac
 }
 
+add_pipelines_to_custom_overrides_file() {
+  case ${OWUI_PIPELINES_ENABLED} in
+    True|true|TRUE)
+      echo "pipelines:
+  enabled: ${OWUI_PIPELINES_ENABLED}
+  persistence:
+    storageClass: ${STORAGE_CLASS_NAME}" >> ${CUSTOM_OVERRIDES_FILE}
+    ;;
+  esac
+}
+
 add_extra_envvars_to_custom_overrides_file() {
   echo "extraEnvVars:" >> ${CUSTOM_OVERRIDES_FILE}
 #- name: DEFAULT_MODELS
@@ -267,6 +278,7 @@ case ${1} in
     create_owui_base_custom_overrides_file
     add_ollama_config_to_custom_overrides_file
     add_nvidia_gpu_to_custom_overrides_file
+    add_pipelines_to_custom_overrides_file
     add_extra_envvars_to_custom_overrides_file
     add_milvus_to_custom_overrides_file
     display_custom_overrides_file
@@ -286,6 +298,7 @@ case ${1} in
     log_into_app_collection
     create_owui_base_custom_overrides_file
     add_ollama_config_to_custom_overrides_file
+    add_pipelines_to_custom_overrides_file
     add_extra_envvars_to_custom_overrides_file
     display_custom_overrides_file
     install_open_webui
@@ -298,6 +311,7 @@ case ${1} in
     create_owui_base_custom_overrides_file
     add_ollama_config_to_custom_overrides_file
     add_nvidia_gpu_to_custom_overrides_file
+    add_pipelines_to_custom_overrides_file
     display_custom_overrides_file
     install_open_webui
   ;;
@@ -309,6 +323,7 @@ case ${1} in
     create_owui_base_custom_overrides_file
     add_ollama_config_to_custom_overrides_file
     add_nvidia_gpu_to_custom_overrides_file
+    add_pipelines_to_custom_overrides_file
     add_extra_envvars_to_custom_overrides_file
     add_milvus_to_custom_overrides_file
     display_custom_overrides_file
@@ -321,6 +336,7 @@ case ${1} in
     log_into_app_collection
     create_owui_base_custom_overrides_file
     add_ollama_config_to_custom_overrides_file
+    add_pipelines_to_custom_overrides_file
     add_extra_envvars_to_custom_overrides_file
     add_milvus_to_custom_overrides_file
     display_custom_overrides_file
