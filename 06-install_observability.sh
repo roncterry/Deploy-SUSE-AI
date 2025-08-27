@@ -110,8 +110,13 @@ create_observability_templates() {
   helm repo update
   echo
 
-  echo "COMMAND: helm template --set license=\"${OBSERVABILITY_LICENSE_KEY}\" --set baseUrl=\"${OBSERVABILITY_BASEURL}\" --set sizing.profile=\"${OBSERVABILITY_SIZING_PROFILE}\" suse-observability-values suse-observability/suse-observability-values --output-dir ${OBSERVABILITY_VALUES_DIR}"
-  helm template --set license="${OBSERVABILITY_LICENSE_KEY}" --set baseUrl="${OBSERVABILITY_BASEURL}" --set sizing.profile="${OBSERVABILITY_SIZING_PROFILE}" suse-observability-values suse-observability/suse-observability-values --output-dir ${OBSERVABILITY_VALUES_DIR}
+  if ! [ -z ${OBSERVABILITY_VERSION} ]
+  then
+    local OBSERVABILITY_VER_ARG="--version ${OBSERVABILITY_VERSION}"
+  fi
+
+  echo "COMMAND: helm template --set license=\"${OBSERVABILITY_LICENSE_KEY}\" --set baseUrl=\"${OBSERVABILITY_BASEURL}\" --set sizing.profile=\"${OBSERVABILITY_SIZING_PROFILE}\" suse-observability-values suse-observability/suse-observability-values --output-dir ${OBSERVABILITY_VALUES_DIR} ${OBSERVABILITY_VER_ARG}"
+  helm template --set license="${OBSERVABILITY_LICENSE_KEY}" --set baseUrl="${OBSERVABILITY_BASEURL}" --set sizing.profile="${OBSERVABILITY_SIZING_PROFILE}" suse-observability-values suse-observability/suse-observability-values --output-dir ${OBSERVABILITY_VALUES_DIR} ${OBSERVABILITY_VER_ARG}
 
   export OBSERVABILITY_BASECONFIG_VALUES_ARG="--values ${OBSERVABILITY_VALUES_DIR}/suse-observability-values/templates/baseConfig_values.yaml"
   export OBSERVABILITY_SIZING_VALUES_ARG="--values ${OBSERVABILITY_VALUES_DIR}/suse-observability-values/templates/sizing_values.yaml"
@@ -138,7 +143,7 @@ write_out_observability_ingress_values_file() {
 
         echo "Creating the TLS secrets ..."
         echo
-        #####  Secret  #####
+        #####  Observability TLS Secret  #####
         echo "COMMAND: kubectl -n ${OBSERVABILITY_NAMESPACE} create secret tls tls-ingress-secret --cert ${OBSERVABILITY_TLS_CERT_FILE} --key ${OBSERVABILITY_TLS_KEY_FILE}"
         kubectl -n ${OBSERVABILITY_NAMESPACE} create secret tls tls-ingress-secret --cert ${OBSERVABILITY_TLS_CERT_FILE} --key ${OBSERVABILITY_TLS_KEY_FILE}
         echo
@@ -146,11 +151,29 @@ write_out_observability_ingress_values_file() {
         echo "COMMAND: kubectl -n ${OBSERVABILITY_NAMESPACE} create secret generic tls-ca --from-file=${OBSERVABILITY_TLS_CA_FILE}"
         kubectl -n ${OBSERVABILITY_NAMESPACE} create secret generic tls-ca --from-file=${OBSERVABILITY_TLS_CA_FILE}
         echo
+
+        #####  OTEL TLS Secret  #####
+        echo "COMMAND: kubectl -n ${OBSERVABILITY_NAMESPACE} create secret tls otlp_tls_secret --cert ${OBSERVABILITY_OTEL_TLS_CERT_FILE} --key ${OBSERVABILITY_OTEL_TLS_KEY_FILE}"
+        kubectl -n ${OBSERVABILITY_NAMESPACE} create secret tls otlp_tls_secret --cert ${OBSERVABILITY_OTEL_TLS_CERT_FILE} --key ${OBSERVABILITY_OTEL_TLS_KEY_FILE}
+        echo
+
+        echo "COMMAND: kubectl -n ${OBSERVABILITY_NAMESPACE} create secret generic otlp_tls-ca --from-file=${OBSERVABILITY_OTEL_TLS_CA_FILE}"
+        kubectl -n ${OBSERVABILITY_NAMESPACE} create secret generic otlp_tls-ca --from-file=${OBSERVABILITY_OTEL_TLS_CA_FILE}
+        echo
+
+        #####  OTEL HTTP TLS Secret  #####
+        echo "COMMAND: kubectl -n ${OBSERVABILITY_NAMESPACE} create secret tls otlp_http_tls_secret --cert ${OBSERVABILITY_OTEL_TLS_CERT_FILE} --key ${OBSERVABILITY_OTEL_TLS_KEY_FILE}"
+        kubectl -n ${OBSERVABILITY_NAMESPACE} create secret tls otlp_http_tls_secret --cert ${OBSERVABILITY_OTEL_TLS_CERT_FILE} --key ${OBSERVABILITY_OTEL_TLS_KEY_FILE}
+        echo
+
+        echo "COMMAND: kubectl -n ${OBSERVABILITY_NAMESPACE} create secret generic otlp_http_tls-ca --from-file=${OBSERVABILITY_OTEL_TLS_CA_FILE}"
+        kubectl -n ${OBSERVABILITY_NAMESPACE} create secret generic otlp_http_tls-ca --from-file=${OBSERVABILITY_OTEL_TLS_CA_FILE}
+        echo
         echo --------------------------------------------------
         echo
 
-        #####  Ingress  #####
-        echo "Writing out ingress values ..."
+        #####  Observability Ingress  #####
+        echo "Writing out Observability ingress values ..."
         echo
         echo "
 ingress:
@@ -168,6 +191,51 @@ ingress:
         - ${OBSERVABILITY_HOST}
       secretName: tls-ingress-secret
 " > ${OBSERVABILITY_VALUES_DIR}/suse-observability-values/templates/ingress_values.yaml
+
+    cat ${OBSERVABILITY_VALUES_DIR}/suse-observability-values/templates/ingress_values.yaml
+    echo 
+
+        #####  OTEL Ingress  #####
+        echo "Writing out OTEL ingress values ..."
+        echo
+        echo "
+opentelemetry-collector:
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    annotations:
+      nginx.ingress.kubernetes.io/proxy-body-size: "50m"
+      nginx.ingress.kubernetes.io/backend-protocol: GRPC
+    hosts:
+      - host: ${OBSERVABILITY_OTLP_HOST}.${DOMAIN_NAME}
+        paths:
+          - path: /
+            pathType: Prefix
+            port: 4317
+    tls:
+      - hosts:
+          - ${OBSERVABILITY_OTLP_HOST}.${DOMAIN_NAME}
+        secretName: otlp-tls-secret
+    additionalIngresses:
+      - name: otlp-http
+        annotations:
+          nginx.ingress.kubernetes.io/proxy-body-size: "50m"
+        hosts:
+          - host: ${OBSERVABILITY_OTLP_HTTP_HOST}.${DOMAIN_NAME}
+            paths:
+              - path: /
+                pathType: Prefix
+                port: 4318
+        tls:
+          - hosts:
+              - ${OBSERVABILITY_OTLP_HTTP_HOST}.${DOMAIN_NAME}
+            secretName: otlp-http-tls-secret
+" > ${OBSERVABILITY_VALUES_DIR}/suse-observability-values/templates/ingress_otel_values.yaml
+
+    cat ${OBSERVABILITY_VALUES_DIR}/suse-observability-values/templates/ingress_otel_values.yaml
+    echo 
+    echo --------------------------------------------------
+
       ;;
       letsEncrypt)
         #####  Namespace  #####
@@ -181,7 +249,20 @@ ingress:
           echo
         fi
 
-        #####  ClusterIssuer  #####
+	######################################################################
+        #      Configure for LetsEncrypt
+	######################################################################
+
+        echo "Retreiving the Let's Encrypt CA certificate ..."
+        echo "COMMAND: curl https://letsencrypt.org/certs/isrg-root-x1-cross-signed.pem --output cacerts.pem"
+        curl https://letsencrypt.org/certs/isrg-root-x1-cross-signed.pem --output cacerts.pem
+        echo
+
+        echo "Creating secret for the CA cert ..."
+        echo "COMMAND: kubectl -n ${OBSERVABILITY_NAMESPACE} create secret generic tls-ca --from-file=cacerts.pem"
+        kubectl -n ${OBSERVABILITY_NAMESPACE} create secret generic tls-ca --from-file=cacerts.pem
+        echo
+
         echo "Write out the ClusterIssuer manifest ..."
         echo
         echo "apiVersion: cert-manager.io/v1
@@ -214,8 +295,13 @@ spec:
         echo --------------------------------------------------
         echo
 
-        #####  Certificate  #####
-        echo "Write out the Certificate manifest ..."
+	######################################################################
+        #      Create Certificate Manifests and Objects
+	######################################################################
+
+	#========================  Observability  =========================
+        #####  Certificate - Observability  #####
+	echo "Write out the Certificate manifest (Observability) ..."
         echo
         echo "apiVersion: cert-manager.io/v1
 kind: Certificate
@@ -230,30 +316,85 @@ spec:
   commonName: ${OBSERVABILITY_HOST}
   dnsNames:
     - ${OBSERVABILITY_HOST}" > observability-ingress-cert.yaml
+
         echo
         cat observability-ingress-cert.yaml
         echo
 
-        echo "Creating the Certificate ..."
+	echo "Creating the Certificate (Observability) ..."
         echo
         echo "COMMAND: kubectl -n ${OBSERVABILITY_NAMESPACE} apply -f observability-ingress-cert.yaml"
         kubectl -n ${OBSERVABILITY_NAMESPACE} apply -f observability-ingress-cert.yaml
         echo
 
-        echo "Retreiving the Let's Encrypt CA certificate ..."
-        echo "COMMAND: curl https://letsencrypt.org/certs/isrg-root-x1-cross-signed.pem --output cacerts.pem"
-        curl https://letsencrypt.org/certs/isrg-root-x1-cross-signed.pem --output cacerts.pem
+	#==================================================================
+
+	#========================  OTLP  =========================
+        #####  Certificate - OTLP  #####
+	echo "Write out the Certificate manifest (OTLP) ..."
+        echo
+        echo "apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: ${OBSERVABILITY_OTLP_HOST}-ingress-cert
+  namespace: ${OBSERVABILITY_NAMESPACE}
+spec:
+  secretName: tls-otpl-secret
+  issuerRef:
+    name: letsencrypt-prod
+    kind: ClusterIssuer
+  commonName: ${OBSERVABILITY_HOST}
+  dnsNames:
+    - ${OBSERVABILITY_HOST}" > ${OBSERVABILITY_OTLP_HOST}-ingress-cert.yaml
+
+        echo
+        cat ${OBSERVABILITY_OTLP_HOST}-ingress-cert.yaml
         echo
 
-        echo "Creating secret for the CA cert ..."
-        echo "COMMAND: kubectl -n ${OBSERVABILITY_NAMESPACE} create secret generic tls-ca --from-file=cacerts.pem"
-        kubectl -n ${OBSERVABILITY_NAMESPACE} create secret generic tls-ca --from-file=cacerts.pem
+	echo "Creating the Certificate (OTLP) ..."
         echo
+        echo "COMMAND: kubectl -n ${OBSERVABILITY_NAMESPACE} apply -f ${OBSERVABILITY_OTLP_HOST}-ingress-cert.yaml"
+        kubectl -n ${OBSERVABILITY_NAMESPACE} apply -f otlp-stackstate-ingress-cert.yaml
+        echo
+	#==================================================================
+
+	#========================  OTLP-HTTP  =========================
+        #####  Certificate - OTLP-HTTP  #####
+	echo "Write out the Certificate manifest (OTLP-HTTP) ..."
+        echo
+        echo "apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: ${OBSERVABILITY_OTLP_HTTP_HOST}-ingress-cert
+  namespace: ${OBSERVABILITY_NAMESPACE}
+spec:
+  secretName: tls-http-otpl-secret
+  issuerRef:
+    name: letsencrypt-prod
+    kind: ClusterIssuer
+  commonName: ${OBSERVABILITY_HOST}
+  dnsNames:
+    - ${OBSERVABILITY_HOST}" > ${OBSERVABILITY_OTLP_HTTP_HOST}-ingress-cert.yaml
+
+        echo
+        cat ${OBSERVABILITY_OTLP_HTTP_HOST}-ingress-cert.yaml
+        echo
+
+	echo "Creating the Certificate (OTLP-HTTP) ..."
+        echo
+        echo "COMMAND: kubectl -n ${OBSERVABILITY_NAMESPACE} apply -f ${OBSERVABILITY_OTLP_HTTP_HOST}-ingress-cert.yaml"
+        kubectl -n ${OBSERVABILITY_NAMESPACE} apply -f ${OBSERVABILITY_OTLP_HTTP_HOST}-ingress-cert.yaml
+        echo
+	#==================================================================
+
         echo --------------------------------------------------
         echo
 
+	######################################################################
+        #      Write Out Ingress Values
+	######################################################################
 
-        #####  Ingress  #####
+        #####  Observability Ingress  #####
         echo "Writing out ingress values ..."
         echo
         echo "
@@ -275,8 +416,23 @@ ingress:
         - ${OBSERVABILITY_HOST}
       secretName: tls-observability-ingress
 " > ${OBSERVABILITY_VALUES_DIR}/suse-observability-values/templates/ingress_values.yaml
+
+    cat ${OBSERVABILITY_VALUES_DIR}/suse-observability-values/templates/ingress_values.yaml
+    echo 
+
+        #####  OTEL Ingress  #####
+        echo "Writing out OTEL ingress values ..."
+        echo
+        echo "
+" > ${OBSERVABILITY_VALUES_DIR}/suse-observability-values/templates/ingress_otel_values.yaml
+
+    cat ${OBSERVABILITY_VALUES_DIR}/suse-observability-values/templates/ingress_otel_values.yaml
+    echo 
+    echo --------------------------------------------------
+
       ;;
       *)
+        #####  Observability Ingress  #####
         echo "Writing out ingress values ..."
         echo
         echo "
@@ -291,15 +447,47 @@ ingress:
   hosts: 
     - host: ${OBSERVABILITY_HOST}
 " > ${OBSERVABILITY_VALUES_DIR}/suse-observability-values/templates/ingress_values.yaml
+
+    cat ${OBSERVABILITY_VALUES_DIR}/suse-observability-values/templates/ingress_values.yaml
+    echo 
+
+        #####  OTEL Ingress  #####
+        echo "Writing out OTEL ingress values ..."
+        echo
+        echo "
+opentelemetry-collector:
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    annotations:
+      nginx.ingress.kubernetes.io/proxy-body-size: "50m"
+      nginx.ingress.kubernetes.io/backend-protocol: GRPC
+    hosts:
+      - host: ${OBSERVABILITY_OTLP_HOST}.${DOMAIN_NAME}
+        paths:
+          - path: /
+            pathType: Prefix
+            port: 4317
+    additionalIngresses:
+      - name: otlp-http
+        annotations:
+          nginx.ingress.kubernetes.io/proxy-body-size: "50m"
+        hosts:
+          - host: ${OBSERVABILITY_OTLP_HTTP_HOST}.${DOMAIN_NAME}
+            paths:
+              - path: /
+                pathType: Prefix
+                port: 4318
+" > ${OBSERVABILITY_VALUES_DIR}/suse-observability-values/templates/ingress_otel_values.yaml
       ;;
     esac
 
-    cat ${OBSERVABILITY_VALUES_DIR}/suse-observability-values/templates/ingress_values.yaml
+    cat ${OBSERVABILITY_VALUES_DIR}/suse-observability-values/templates/ingress_otel_values.yaml
     echo 
     echo --------------------------------------------------
     echo
 
-    OBSERVABILITY_INGRESS_VALUES_ARG="--values ${OBSERVABILITY_VALUES_DIR}/suse-observability-values/templates/ingress_values.yaml"
+    #OBSERVABILITY_INGRESS_VALUES_ARG="--values ${OBSERVABILITY_VALUES_DIR}/suse-observability-values/templates/ingress_values.yaml --values ${OBSERVABILITY_VALUES_DIR}/suse-observability-values/templates/ingress_otel_values.yaml"
   fi
 }
 
@@ -362,8 +550,8 @@ stackstate:
     done
 
     cat ${OBSERVABILITY_VALUES_DIR}/suse-observability-values/templates/authentication_values.yaml
-    echo 
-    export OBSERVABILITY_AUTH_VALUES_ARG="--values ${OBSERVABILITY_VALUES_DIR}/suse-observability-values/templates/authentication_values.yaml"
+    #echo 
+    #export OBSERVABILITY_AUTH_VALUES_ARG="--values ${OBSERVABILITY_VALUES_DIR}/suse-observability-values/templates/authentication_values.yaml"
     echo
   echo --------------------------------------------------
   echo
@@ -393,9 +581,31 @@ install_certmanager_for_observability() {
 }
 
 install_observability() {
+  #### Set some values that aren't defaults
+  if ! [ -z ${OBSERVABILITY_VERSION} ]
+  then
+    local OBSERVABILITY_VER_ARG="--version ${OBSERVABILITY_VERSION}"
+  fi
+
+  if ! [ -z ${OBSERVABILITY_VERSION} ]
+  then
+    local OBSERVABILITY_VER_ARG="--version ${OBSERVABILITY_VERSION}"
+  fi
+
+  if $(ls ${OBSERVABILITY_VALUES_DIR}/suse-observability-values/templates | grep -q ingress*)
+  then
+    export OBSERVABILITY_INGRESS_VALUES_ARG="--values ${OBSERVABILITY_VALUES_DIR}/suse-observability-values/templates/ingress_values.yaml --values ${OBSERVABILITY_VALUES_DIR}/suse-observability-values/templates/ingress_otel_values.yaml"
+  fi
+
+  if [ -e ${OBSERVABILITY_VALUES_DIR}/suse-observability-values/templates/authentication_values.yaml ]
+  then
+    export OBSERVABILITY_AUTH_VALUES_ARG="--values ${OBSERVABILITY_VALUES_DIR}/suse-observability-values/templates/authentication_values.yaml"
+  fi
+
+  #### Run the helm command
   echo
-  echo "COMMAND: helm upgrade --install --namespace ${OBSERVABILITY_NAMESPACE} --create-namespace ${OBSERVABILITY_BASECONFIG_VALUES_ARG} ${OBSERVABILITY_SIZING_VALUES_ARG} ${OBSERVABILITY_INGRESS_VALUES_ARG} ${OBSERVABILITY_AUTH_VALUES_ARG} suse-observability suse-observability/suse-observability"
-  helm upgrade --install --namespace ${OBSERVABILITY_NAMESPACE} --create-namespace ${OBSERVABILITY_BASECONFIG_VALUES_ARG} ${OBSERVABILITY_SIZING_VALUES_ARG} ${OBSERVABILITY_INGRESS_VALUES_ARG} ${OBSERVABILITY_AUTH_VALUES_ARG} suse-observability suse-observability/suse-observability
+  echo "COMMAND: helm upgrade --install --namespace ${OBSERVABILITY_NAMESPACE} --create-namespace ${OBSERVABILITY_BASECONFIG_VALUES_ARG} ${OBSERVABILITY_SIZING_VALUES_ARG} ${OBSERVABILITY_INGRESS_VALUES_ARG} ${OBSERVABILITY_AUTH_VALUES_ARG} suse-observability suse-observability/suse-observability ${OBSERVABILITY_VER+ARG}"
+  helm upgrade --install --namespace ${OBSERVABILITY_NAMESPACE} --create-namespace ${OBSERVABILITY_BASECONFIG_VALUES_ARG} ${OBSERVABILITY_SIZING_VALUES_ARG} ${OBSERVABILITY_INGRESS_VALUES_ARG} ${OBSERVABILITY_AUTH_VALUES_ARG} suse-observability suse-observability/suse-observability ${OBSERVABILITY_VER_ARG}
 
   echo
   sleep 5
