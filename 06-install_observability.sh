@@ -207,28 +207,28 @@ opentelemetry-collector:
       nginx.ingress.kubernetes.io/proxy-body-size: "50m"
       nginx.ingress.kubernetes.io/backend-protocol: GRPC
     hosts:
-      - host: ${OBSERVABILITY_OTLP_HOST}.${DOMAIN_NAME}
+      - host: ${OBSERVABILITY_OTLP_HOST}
         paths:
           - path: /
             pathType: Prefix
             port: 4317
     tls:
       - hosts:
-          - ${OBSERVABILITY_OTLP_HOST}.${DOMAIN_NAME}
+          - ${OBSERVABILITY_OTLP_HOST}
         secretName: otlp-tls-secret
     additionalIngresses:
       - name: otlp-http
         annotations:
           nginx.ingress.kubernetes.io/proxy-body-size: "50m"
         hosts:
-          - host: ${OBSERVABILITY_OTLP_HTTP_HOST}.${DOMAIN_NAME}
+          - host: ${OBSERVABILITY_OTLP_HTTP_HOST}
             paths:
               - path: /
                 pathType: Prefix
                 port: 4318
         tls:
           - hosts:
-              - ${OBSERVABILITY_OTLP_HTTP_HOST}.${DOMAIN_NAME}
+              - ${OBSERVABILITY_OTLP_HTTP_HOST}
             secretName: otlp-http-tls-secret
 " > ${OBSERVABILITY_VALUES_DIR}/suse-observability-values/templates/ingress_otel_values.yaml
 
@@ -463,7 +463,7 @@ opentelemetry-collector:
       nginx.ingress.kubernetes.io/proxy-body-size: "50m"
       nginx.ingress.kubernetes.io/backend-protocol: GRPC
     hosts:
-      - host: ${OBSERVABILITY_OTLP_HOST}.${DOMAIN_NAME}
+      - host: ${OBSERVABILITY_OTLP_HOST}
         paths:
           - path: /
             pathType: Prefix
@@ -473,7 +473,7 @@ opentelemetry-collector:
         annotations:
           nginx.ingress.kubernetes.io/proxy-body-size: "50m"
         hosts:
-          - host: ${OBSERVABILITY_OTLP_HTTP_HOST}.${DOMAIN_NAME}
+          - host: ${OBSERVABILITY_OTLP_HTTP_HOST}
             paths:
               - path: /
                 pathType: Prefix
@@ -587,11 +587,6 @@ install_observability() {
     local OBSERVABILITY_VER_ARG="--version ${OBSERVABILITY_VERSION}"
   fi
 
-  if ! [ -z ${OBSERVABILITY_VERSION} ]
-  then
-    local OBSERVABILITY_VER_ARG="--version ${OBSERVABILITY_VERSION}"
-  fi
-
   if $(ls ${OBSERVABILITY_VALUES_DIR}/suse-observability-values/templates | grep -q ingress*)
   then
     export OBSERVABILITY_INGRESS_VALUES_ARG="--values ${OBSERVABILITY_VALUES_DIR}/suse-observability-values/templates/ingress_values.yaml --values ${OBSERVABILITY_VALUES_DIR}/suse-observability-values/templates/ingress_otel_values.yaml"
@@ -604,7 +599,7 @@ install_observability() {
 
   #### Run the helm command
   echo
-  echo "COMMAND: helm upgrade --install --namespace ${OBSERVABILITY_NAMESPACE} --create-namespace ${OBSERVABILITY_BASECONFIG_VALUES_ARG} ${OBSERVABILITY_SIZING_VALUES_ARG} ${OBSERVABILITY_INGRESS_VALUES_ARG} ${OBSERVABILITY_AUTH_VALUES_ARG} suse-observability suse-observability/suse-observability ${OBSERVABILITY_VER+ARG}"
+  echo "COMMAND: helm upgrade --install --namespace ${OBSERVABILITY_NAMESPACE} --create-namespace ${OBSERVABILITY_BASECONFIG_VALUES_ARG} ${OBSERVABILITY_SIZING_VALUES_ARG} ${OBSERVABILITY_INGRESS_VALUES_ARG} ${OBSERVABILITY_AUTH_VALUES_ARG} suse-observability suse-observability/suse-observability ${OBSERVABILITY_VER_ARG}"
   helm upgrade --install --namespace ${OBSERVABILITY_NAMESPACE} --create-namespace ${OBSERVABILITY_BASECONFIG_VALUES_ARG} ${OBSERVABILITY_SIZING_VALUES_ARG} ${OBSERVABILITY_INGRESS_VALUES_ARG} ${OBSERVABILITY_AUTH_VALUES_ARG} suse-observability suse-observability/suse-observability ${OBSERVABILITY_VER_ARG}
 
   echo
