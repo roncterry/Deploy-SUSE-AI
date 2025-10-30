@@ -210,8 +210,8 @@ install_suse_observability_ai_extension() {
   echo "Installing AI Extension ..."
   echo "------------------------------------------------------------"
 
-  echo "COMMAND: helm upgrade --install ai-extension --namespace ${OBSERVABILITY_NAMESPACE} --create-namespace -f ${CUSTOM_OVERRIDES_FILE} oci://dp.apps.rancher.io/charts/suse-ai-observability-extension ${AI_EXT_VER_ARG} "
-  helm upgrade --install ai-extension --namespace ${OBSERVABILITY_NAMESPACE} --create-namespace -f ${CUSTOM_OVERRIDES_FILE} oci://dp.apps.rancher.io/charts/suse-ai-observability-extension ${AI_EXT_VER_ARG}
+  echo "COMMAND: helm upgrade --install ai-extension-${OBSERVABILITY_OBSERVED_CLUSTER_NAME} --namespace ${OBSERVABILITY_NAMESPACE} --create-namespace -f ${CUSTOM_OVERRIDES_FILE} oci://dp.apps.rancher.io/charts/suse-ai-observability-extension ${AI_EXT_VER_ARG} "
+  helm upgrade --install ai-extension-${OBSERVABILITY_OBSERVED_CLUSTER_NAME} --namespace ${OBSERVABILITY_NAMESPACE} --create-namespace -f ${CUSTOM_OVERRIDES_FILE} oci://dp.apps.rancher.io/charts/suse-ai-observability-extension ${AI_EXT_VER_ARG}
 
   #echo
   #echo "COMMAND: kubectl -n ${OBSERVABILITY_NAMESPACE} rollout status deploy/ai-extension"
